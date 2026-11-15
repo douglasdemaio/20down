@@ -1,0 +1,36 @@
+{
+  "name": "wagerwake",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dice & Cards — free and USDC-wagered multiplayer dice/card games on Solana",
+  "workspaces": [
+    "app",
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,app -c magenta,cyan \"npm:dev:server\" \"npm:dev:app\"",
+    "dev:server": "npm run dev -w @wagerwake/server",
+    "dev:app": "npm run dev -w @wagerwake/app",
+    "build": "npm run build -w @wagerwake/app && npm run build -w @wagerwake/server",
+    "typecheck": "npm run typecheck -w @wagerwake/shared && npm run typecheck -w @wagerwake/server && npm run typecheck -w @wagerwake/app",
+    "test": "npm run test -w @wagerwake/shared && npm run test -w @wagerwake/server",
+    "test:shared": "npm run test -w @wagerwake/shared",
+    "test:server": "npm run test -w @wagerwake/server",
+    "chain:build": "anchor build",
+    "chain:test": "anchor test",
+    "chain:test:local": "anchor test --skip-build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
+  },
+  "overrides": {
+    "react": "~18.3.1",
+    "react-dom": "~18.3.1",
+    "scheduler": "~0.23.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
