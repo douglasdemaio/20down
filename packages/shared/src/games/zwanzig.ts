@@ -127,6 +127,16 @@ export interface TrickState {
   cards: TrickCard[];
 }
 
+/** A finished trick, kept so players can see which cards won each hand. */
+export interface CompletedTrick {
+  deal: number;
+  trick: number;
+  leader: number;
+  winner: number;
+  ledSuit: Suit | null;
+  cards: TrickCard[];
+}
+
 export interface ZwanzigLogEntry {
   deal: number;
   trick: number;
@@ -150,6 +160,7 @@ export interface ZwanzigView {
   trick: { leader: number; ledSuit: Suit | null; cards: TrickCard[] } | null;
   trickNumber: number;
   tricksWon: number[];
+  trickHistory: CompletedTrick[];
   inHand: boolean[];
   announces: Array<boolean | null>;
   exchangesUsed: number[];
@@ -179,6 +190,7 @@ export class ZwanzigGame {
   trick: TrickState | null;
   trickNumber: number;
   tricksWon: number[];
+  trickHistory: CompletedTrick[];
   winner: number | null;
   lastDealDeltas: number[] | null;
   log: ZwanzigLogEntry[];
@@ -203,6 +215,7 @@ export class ZwanzigGame {
     this.trick = null;
     this.trickNumber = 0;
     this.tricksWon = Array.from({ length: playerCount }, () => 0);
+    this.trickHistory = [];
     this.winner = null;
     this.lastDealDeltas = null;
     this.log = [];
@@ -436,6 +449,14 @@ export class ZwanzigGame {
     if (!this.trick) return;
     const winner = this.trickWinner();
     this.tricksWon[winner] = (this.tricksWon[winner] as number) + 1;
+    this.trickHistory.push({
+      deal: this.dealNumber,
+      trick: this.trickNumber,
+      leader: this.trick.leader,
+      winner,
+      ledSuit: this.trick.ledSuit,
+      cards: this.trick.cards.map((entry) => ({ seat: entry.seat, card: { ...entry.card } })),
+    });
     const tricksPlayed = this.trickNumber;
     if (tricksPlayed >= CARDS_PER_HAND) {
       this.scoreDeal();
@@ -573,6 +594,10 @@ export class ZwanzigGame {
         : null,
       trickNumber: this.trickNumber,
       tricksWon: [...this.tricksWon],
+      trickHistory: this.trickHistory.map((entry) => ({
+        ...entry,
+        cards: entry.cards.map((played) => ({ seat: played.seat, card: { ...played.card } })),
+      })),
       inHand: [...this.inHand],
       announces: [...this.announces],
       exchangesUsed: [...this.exchangesUsed],

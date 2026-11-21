@@ -305,25 +305,91 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
       </div>
 
       {view.phase === "deal-scored" && view.lastDealDeltas ? (
-        <div className="panel flex flex-wrap items-center justify-between gap-3 p-4">
-          <div>
-            <p className="label">Deal {view.dealNumber} result</p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {view.lastDealDeltas.map((delta, seat) => (
-                <span
-                  key={seat}
-                  className={`chip ${
-                    delta < 0 ? "border-emerald-400/30 text-emerald-200" : delta > 0 ? "border-coral-400/30 text-coral-400" : ""
-                  }`}
-                >
-                  {seatName(seat)} {delta > 0 ? `+${delta}` : delta}
-                </span>
-              ))}
+        <div className="panel p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="label">Deal {view.dealNumber} result</p>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {view.lastDealDeltas.map((delta, seat) => (
+                  <span
+                    key={seat}
+                    className={`chip ${
+                      delta < 0 ? "border-emerald-400/30 text-emerald-200" : delta > 0 ? "border-coral-400/30 text-coral-400" : ""
+                    }`}
+                  >
+                    {seatName(seat)} {delta > 0 ? `+${delta}` : delta}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button type="button" className="btn-ghost" onClick={nextDeal}>
+              Next deal →
+            </button>
+          </div>
+
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <p className="label">Hands won this deal</p>
+            <p className="mt-1 text-[10px] text-parchment-200/40">
+              The winning card is outlined in green — check a trick to confirm who took it.
+            </p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {view.scores.map((_, seat) => {
+                const tricks = view.trickHistory.filter(
+                  (trick) => trick.deal === view.dealNumber && trick.winner === seat,
+                );
+                return (
+                  <div key={seat} className="rounded-xl border border-white/10 bg-ink-950/40 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-xs font-semibold text-parchment-100">
+                        {seatName(seat)}
+                        {seat === view.seat ? (
+                          <span className="ml-1.5 font-normal text-emerald-300">you</span>
+                        ) : null}
+                      </p>
+                      <span className="shrink-0 font-mono text-[10px] text-parchment-200/40">
+                        {tricks.length} trick{tricks.length === 1 ? "" : "s"} won
+                      </span>
+                    </div>
+                    {tricks.length ? (
+                      <div className="mt-3 space-y-3">
+                        {tricks.map((trick) => (
+                          <div key={`${trick.deal}-${trick.trick}`}>
+                            <p className="mb-1.5 font-mono text-[9px] uppercase tracking-wider text-parchment-200/40">
+                              Trick {trick.trick}
+                              {trick.ledSuit ? ` · ${SUIT_NAME[trick.ledSuit]} led` : ""}
+                            </p>
+                            <div className="flex flex-wrap items-end gap-1.5">
+                              {trick.cards.map((entry) => (
+                                <div key={`${entry.seat}-${cardId(entry.card)}`} className="text-center">
+                                  <PlayingCard
+                                    card={entry.card}
+                                    size="sm"
+                                    won={entry.seat === trick.winner}
+                                    trump={entry.card.suit === view.trump}
+                                  />
+                                  <p
+                                    className={`mt-1 max-w-[2.75rem] truncate text-[8px] ${
+                                      entry.seat === trick.winner
+                                        ? "font-semibold text-emerald-300"
+                                        : "text-parchment-200/40"
+                                    }`}
+                                  >
+                                    {seatName(entry.seat)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-[10px] text-parchment-200/35">No tricks won.</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <button type="button" className="btn-ghost" onClick={nextDeal}>
-            Next deal →
-          </button>
         </div>
       ) : null}
     </div>

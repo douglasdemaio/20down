@@ -220,6 +220,20 @@ describe("trick play", () => {
     game.playCard(1, "7♣");
     expect(game.trick?.leader).toBe(1);
   });
+
+  it("records a finished trick with its cards and winner", () => {
+    const game = playState();
+    game.playCard(1, "A♥");
+    expect(game.trickHistory).toHaveLength(1);
+    const entry = game.trickHistory[0] as (typeof game.trickHistory)[number];
+    expect(entry.deal).toBe(game.dealNumber);
+    expect(entry.trick).toBe(1);
+    expect(entry.winner).toBe(1);
+    expect(entry.ledSuit).toBe("hearts");
+    expect(entry.cards.map((played) => played.seat)).toEqual([0, 1]);
+    expect(entry.cards.map((played) => cardId(played.card))).toEqual(["7♥", "A♥"]);
+    expect(game.viewFor(1).trickHistory).toEqual(game.trickHistory);
+  });
 });
 
 describe("scoring", () => {

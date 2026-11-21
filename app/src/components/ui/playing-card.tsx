@@ -30,6 +30,7 @@ export function PlayingCard({
   selected,
   dimmed,
   trump,
+  won,
   onClick,
   size = "md",
 }: {
@@ -38,6 +39,8 @@ export function PlayingCard({
   dimmed?: boolean;
   /** Marks a card that belongs to the current trump suit. */
   trump?: boolean;
+  /** Marks the card that won a completed trick. */
+  won?: boolean;
   onClick?: () => void;
   size?: "sm" | "md" | "lg";
 }) {
@@ -69,13 +72,14 @@ export function PlayingCard({
 
   const classes = `card-face ${widths} transition ${
     selected ? "-translate-y-1 border-brass-400 ring-2 ring-brass-400/60" : ""
-  } ${trump && !dimmed ? "border-brass-400/80 shadow-[0_0_18px_rgba(212,168,79,0.45)]" : ""} ${
-    dimmed ? "opacity-40" : ""
-  } ${onClick ? "cursor-pointer hover:-translate-y-1" : ""}`;
+  } ${won ? "border-emerald-400 ring-2 ring-emerald-400/70" : ""} ${
+    trump && !dimmed && !won ? "border-brass-400/80 shadow-[0_0_18px_rgba(212,168,79,0.45)]" : ""
+  } ${dimmed ? "opacity-40" : ""} ${onClick ? "cursor-pointer hover:-translate-y-1" : ""}`;
 
   if (!onClick) {
+    const title = `${cardLabel(card)}${won ? " · winning card" : ""}${trump ? " · trump" : ""}`;
     return (
-      <span className={classes} title={trump ? `${cardLabel(card)} · trump` : cardLabel(card)}>
+      <span className={classes} title={title}>
         {body}
       </span>
     );
@@ -86,7 +90,7 @@ export function PlayingCard({
       type="button"
       onClick={onClick}
       className={classes}
-      title={trump ? `${cardLabel(card)} · trump` : cardLabel(card)}
+      title={`${cardLabel(card)}${won ? " · winning card" : ""}${trump ? " · trump" : ""}`}
     >
       {body}
     </button>
