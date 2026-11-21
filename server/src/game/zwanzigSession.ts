@@ -30,6 +30,7 @@ export class ZwanzigSession {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private pauseTimer: ReturnType<typeof setTimeout> | null = null;
   private deadline: number | null = null;
+  private reviewDeadline: number | null = null;
   private over = false;
   private disposed = false;
 
@@ -56,7 +57,7 @@ export class ZwanzigSession {
   }
 
   get deadlineAt(): number | null {
-    return this.deadline;
+    return this.deadline ?? this.reviewDeadline;
   }
 
   get isOver(): boolean {
@@ -154,7 +155,6 @@ export class ZwanzigSession {
     }
     if (this.game.phase === "deal-scored") {
       this.clearTimer();
-      this.events.onUpdate();
       this.scheduleDealAdvance();
       return;
     }
@@ -164,14 +164,17 @@ export class ZwanzigSession {
 
   private scheduleDealAdvance(): void {
     this.clearPause();
+    this.reviewDeadline = Date.now() + this.dealPauseMs;
     this.pauseTimer = setTimeout(() => {
       if (this.disposed || this.over) return;
       this.dealAdvance();
     }, this.dealPauseMs);
+    this.events.onUpdate();
   }
 
   private dealAdvance(): void {
     if (this.game.phase !== "deal-scored" || this.over) return;
+    this.reviewDeadline = null;
     this.game.nextDeal();
     this.armTimer();
     this.events.onUpdate();
@@ -197,5 +200,6 @@ export class ZwanzigSession {
   private clearPause(): void {
     if (this.pauseTimer) clearTimeout(this.pauseTimer);
     this.pauseTimer = null;
+    this.reviewDeadline = null;
   }
 }

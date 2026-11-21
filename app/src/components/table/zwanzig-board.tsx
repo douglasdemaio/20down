@@ -79,7 +79,12 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {room.turnDeadline ? (
-              <Countdown deadline={room.turnDeadline} serverTime={room.serverTime} totalMs={room.turnTimeoutMs} />
+              <Countdown
+                deadline={room.turnDeadline}
+                serverTime={room.serverTime}
+                totalMs={room.turnTimeoutMs}
+                label={view.phase === "deal-scored" ? "Review clock" : "Turn clock"}
+              />
             ) : null}
             <span className={view.trump === "hearts" ? "chip-warn" : "chip"}>
               {view.trump ? `${SUIT_SYMBOL[view.trump]} ${SUIT_NAME[view.trump]}` : "no trump"}
@@ -434,7 +439,8 @@ function ActionPanel({
     return (
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-ink-950/40 px-4 py-3">
         <p className="text-xs text-parchment-200/55">
-          Scores updated. The next deal begins automatically in a few seconds.
+          Take your time reviewing the hands won. The next deal begins when the review clock runs
+          out — use Deal now to start early.
         </p>
         <button type="button" className="btn-ghost" onClick={onNextDeal}>
           Deal now

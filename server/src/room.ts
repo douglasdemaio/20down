@@ -400,7 +400,7 @@ export class Room {
       playerCount: this.occupied.length,
       seed,
       timeoutMs: this.turnTimeoutMs,
-      dealPauseMs: 5000,
+      dealPauseMs: this.turnTimeoutMs,
       events: {
         onUpdate: () => this.changed(),
         onGameOver: (winner, logHash) => void this.onZwanzigGameOver(winner, logHash),

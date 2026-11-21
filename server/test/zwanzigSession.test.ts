@@ -114,6 +114,29 @@ describe("ZwanzigSession", () => {
     session.dispose();
   });
 
+  it("gives the deal review a clock that matches the pause length", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+    const session = new ZwanzigSession({
+      playerCount: 2,
+      timeoutMs: 60_000,
+      dealPauseMs: 9_000,
+      seed: new Uint8Array(32).fill(3),
+      events: { onUpdate: () => {}, onGameOver: () => {} },
+    });
+    for (let step = 0; step < 5000 && session.phase !== "deal-scored"; step += 1) {
+      session.botAct();
+    }
+    expect(session.phase).toBe("deal-scored");
+    // The review clock is exposed as the deadline so the UI can show it.
+    expect(session.deadlineAt).toBe(Date.now() + 9_000);
+    // A manual "deal now" clears the review clock and arms the turn clock.
+    session.nextDeal();
+    expect(session.phase).not.toBe("deal-scored");
+    expect(session.deadlineAt).toBe(Date.now() + 60_000);
+    session.dispose();
+  });
+
   it("exposes a spectator view without hidden cards", () => {
     const session = new ZwanzigSession({
       playerCount: 3,
