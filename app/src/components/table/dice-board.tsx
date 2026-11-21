@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Dices, Lock, RotateCcw, Hand, CheckCircle2 } from "lucide-react";
+import { Dices, Lock, RotateCcw, Hand, CheckCircle2, HelpCircle } from "lucide-react";
 import type { RoomView } from "@wagerwake/shared/protocol";
 import { evaluateHorses, describeHorsesHand } from "@wagerwake/shared";
 import { useGameSocket } from "@/components/game-socket-provider";
@@ -16,8 +16,9 @@ const STAGE_COPY = [
 ];
 
 export function DiceBoard({ room }: { room: RoomView }) {
-  const { reroll, stand } = useGameSocket();
+  const { reroll, stand, rematch } = useGameSocket();
   const [selected, setSelected] = useState<number[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
 
   const dice = room.dice;
   const yourTurn = room.yourSeat !== null && room.currentSeat === room.yourSeat;
@@ -56,22 +57,51 @@ export function DiceBoard({ room }: { room: RoomView }) {
 
   return (
     <div className="panel-felt relative overflow-hidden p-4 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="label">{game === "horses" ? "Horses" : "Ship, Captain & Crew"}</p>
           <h2 className="mt-1 font-display text-2xl text-parchment-100">
             {yourTurn ? "Your roll" : room.currentSeat === null ? "Round complete" : `${currentName} is rolling`}
           </h2>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {room.turnDeadline ? (
             <Countdown deadline={room.turnDeadline} serverTime={room.serverTime} totalMs={room.turnTimeoutMs} />
           ) : null}
           <span className="chip">
             Round {room.round}
           </span>
+          <button
+            type="button"
+            onClick={() => setShowHelp(!showHelp)}
+            className="rounded-full border border-white/15 bg-white/5 p-2 text-parchment-200/70 transition hover:border-brass-400/50 hover:text-parchment-100"
+            aria-label="How to play"
+            title="How to play"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
         </div>
       </div>
+
+      {showHelp ? (
+        <div className="mt-4 rounded-xl border border-brass-400/30 bg-brass-500/[0.06] p-4 text-xs leading-relaxed text-parchment-200/70">
+          {game === "horses" ? (
+            <p>
+              <strong className="text-parchment-100">Goal:</strong> Get the most dice showing the same face.
+              Ones are wild. Ties break by fewer rolls, then higher face. The first player&apos;s
+              roll count caps everyone after them. Click dice to select which to reroll, then press
+              Reroll or Stand.
+            </p>
+          ) : (
+            <p>
+              <strong className="text-parchment-100">Goal:</strong> Lock a 6 (ship), then a 5
+              (captain), then a 4 (crew) — in that order. The two leftover dice are your cargo;
+              highest cargo wins. Locking is automatic. Click unlocked dice to reroll them, up to
+              three rolls total.
+            </p>
+          )}
+        </div>
+      ) : null}
 
       {game === "ship-captain-crew" ? (
         <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -106,7 +136,7 @@ export function DiceBoard({ room }: { room: RoomView }) {
         </div>
       )}
 
-      <div className="mt-8 flex min-h-[7rem] flex-wrap items-center justify-center gap-3 sm:gap-4">
+      <div className="mt-8 flex min-h-[9rem] flex-wrap items-center justify-center gap-3 sm:gap-4">
         {dice ? (
           dice.dice.map((value, index) => (
             <Die
@@ -116,13 +146,29 @@ export function DiceBoard({ room }: { room: RoomView }) {
               held={selected.includes(index)}
               selectable={yourTurn && dice.canReroll && !dice.locked[index]}
               muted={dice.locked[index] && yourTurn && game === "ship-captain-crew"}
+              highlighted={selected.includes(index)}
               onClick={yourTurn ? () => toggle(index) : undefined}
             />
           ))
         ) : (
           <div className="text-center text-sm text-parchment-200/40">
             <Dices className="mx-auto mb-2 h-8 w-8 opacity-40" />
-            {room.phase === "resolved" ? "The round has been settled." : "Waiting for the next roll…"}
+            {room.phase === "resolved" ? (
+              <>
+                <p>The round has been settled.</p>
+                {room.mode === "free" ? (
+                  <button
+                    type="button"
+                    className="btn-primary mt-3"
+                    onClick={() => rematch()}
+                  >
+                    <RotateCcw className="h-4 w-4" /> Play another round
+                  </button>
+                ) : null}
+              </>
+            ) : (
+              "Waiting for the next roll…"
+            )}
           </div>
         )}
       </div>
@@ -160,7 +206,9 @@ export function DiceBoard({ room }: { room: RoomView }) {
       ) : (
         <div className="mt-7 text-center text-xs text-parchment-200/45">
           {room.currentSeat === null
-            ? "Waiting for the round to be scored."
+            ? room.state === "resolved"
+              ? "Round scored. Start the next round whenever you are ready."
+              : "Waiting for the round to be scored."
             : "Select dice and reroll when the turn reaches you."}
         </div>
       )}

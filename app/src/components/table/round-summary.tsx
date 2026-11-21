@@ -35,11 +35,11 @@ export function RoundSummary({ room }: { room: RoomView }) {
 
       <ul className="divide-y divide-white/5">
         {rows.map((row, index) => (
-          <li key={row.seat} className="flex items-center gap-3 px-4 py-2.5">
+          <li key={row.seat} className="flex items-center gap-3 px-4 py-3 sm:px-6">
             <span className="w-5 text-center font-mono text-xs text-parchment-200/35">
               {index + 1}
             </span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[10px] text-parchment-200/60">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-[11px] text-parchment-200/60">
               {row.name.slice(0, 2).toUpperCase()}
             </span>
             <div className="min-w-0 flex-1">

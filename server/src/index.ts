@@ -224,17 +224,21 @@ export class Hub {
       client.wallet = validateWallet(message.wallet);
     }
     if (message.playerId) {
-      // Reconnect: adopt the stored identity and re-seat it if the room still
-      // holds a seat for it.
+      // Reconnect: adopt the stored identity. The browser tells us which table
+      // it is viewing; without that hint we must not guess, or a stale seat in
+      // an abandoned room would drag the player back into it.
       const existingId = message.playerId.trim();
       if (existingId && existingId.length <= 64 && !existingId.startsWith("bot:")) {
         client.id = existingId;
-        const room = this.roomForPlayer(client.id);
-        if (room) {
-          client.roomId = room.id;
-          room.setConnected(client.id, true);
-          this.send(client, { type: "room", room: room.viewFor(client.id) });
-        }
+      }
+    }
+    const requestedRoomId = String(message.roomId ?? "").trim();
+    if (requestedRoomId) {
+      const room = this.rooms.get(requestedRoomId);
+      if (room && !room.isDestroyed && room.seatOf(client.id)) {
+        client.roomId = room.id;
+        room.setConnected(client.id, true);
+        this.send(client, { type: "room", room: room.viewFor(client.id) });
       }
     }
     this.send(client, {
@@ -250,8 +254,8 @@ export class Hub {
     client: Client,
     message: Extract<ClientMessage, { type: "create" }>,
   ): void {
-    if (client.roomId) throw new Error("Leave your current table first");
-    if (!isGameId(message.game)) throw new Error("Unknown game");    const mode: PlayMode = message.mode === "wager" ? "wager" : "free";
+    if (!isGameId(message.game)) throw new Error("Unknown game");
+    const mode: PlayMode = message.mode === "wager" ? "wager" : "free";
     if (mode === "wager" && !this.chain?.enabled) {
       throw new Error("USDC wagering is not enabled on this server");
     }
@@ -267,6 +271,7 @@ export class Hub {
     if (message.wallet) client.wallet = validateWallet(message.wallet);
     if (message.name) client.name = cleanName(message.name) || client.name;
     if (mode === "wager" && !wallet) throw new Error("Connect a wallet before creating a wager table");
+    if (client.roomId) this.detach(client);
 
     const id = createRoomId();
     const hooks: RoomHooks = {
@@ -314,14 +319,27 @@ export class Hub {
   ): void {
     const room = this.rooms.get(String(message.tableId ?? "").trim());
     if (!room || room.isDestroyed) throw new Error("Table not found");
+    const existingSeat = room.seatOf(client.id);
+    if (existingSeat) {
+      // Reconnecting to (or returning to) a seat we still hold, even after the
+      // game has started. Switching from a different live table still has to
+      // respect the escrow guard.
+      if (client.roomId && client.roomId !== room.id) this.detach(client);
+      client.roomId = room.id;
+      room.setConnected(client.id, true);
+      this.send(client, { type: "room", room: room.viewFor(client.id) });
+      this.broadcastLobby();
+      return;
+    }
     if (room.state !== "waiting") throw new Error("That game has already started");
-    if (client.roomId && client.roomId !== room.id) throw new Error("Leave your current table first");
+    if (room.isFull) throw new Error("Table is full");
     if (message.name) client.name = cleanName(message.name) || client.name;
     const wallet = message.wallet ? validateWallet(message.wallet) : client.wallet;
     if (message.wallet) client.wallet = wallet;
     if (room.mode === "wager" && !wallet) {
       throw new Error("Connect a wallet before joining a wager table");
     }
+    if (client.roomId) this.detach(client);
     const seat = room.addPlayer({
       playerId: client.id,
       name: client.name,
@@ -335,20 +353,39 @@ export class Hub {
   }
 
   private leave(client: Client): void {
-    const room = this.currentRoom(client);
-    if (room) {
-      const seat = room.seatOf(client.id);
-      const removable =
-        room.state === "waiting" && (!seat || room.mode === "free" || !seat.deposited);
-      if (removable) {
-        room.removePlayer(client.id);
-      } else {
-        room.setConnected(client.id, false);
-      }
-    }
-    client.roomId = null;
+    // The deposit-aware guard lives on switching; pressing Leave always releases
+    // the socket, even if escrow still has to be refunded separately.
+    this.detach(client, { allowDepositedWager: true });
     this.send(client, { type: "left" });
     this.broadcastLobby();
+  }
+
+  /**
+   * Releases this socket from its current table, mirroring the Leave button.
+   * A waiting seat is removed; an in-progress seat is only marked disconnected
+   * so the game can finish. Switching away from a deposited wager seat is
+   * refused because its escrow is still live.
+   */
+  private detach(client: Client, options?: { allowDepositedWager?: boolean }): void {
+    const room = this.currentRoom(client);
+    if (!room) {
+      client.roomId = null;
+      return;
+    }
+    const seat = room.seatOf(client.id);
+    const liveEscrow =
+      room.mode === "wager" &&
+      Boolean(seat?.deposited) &&
+      room.state !== "resolved" &&
+      room.state !== "voided";
+    if (liveEscrow && !options?.allowDepositedWager) {
+      throw new Error("Finish or refund your USDC seat before switching tables");
+    }
+    client.roomId = null;
+    const removable =
+      room.state === "waiting" && (!seat || room.mode === "free" || !seat.deposited);
+    if (removable) room.removePlayer(client.id);
+    else room.setConnected(client.id, false);
   }
 
   /* ------------------------------------------------------------------ */
@@ -429,13 +466,6 @@ export class Hub {
   private roomForTable(table: PublicKey): Room | null {
     for (const room of this.rooms.values()) {
       if (room.chainTable?.equals(table)) return room;
-    }
-    return null;
-  }
-
-  private roomForPlayer(playerId: string): Room | null {
-    for (const room of this.rooms.values()) {
-      if (room.seatOf(playerId)) return room;
     }
     return null;
   }

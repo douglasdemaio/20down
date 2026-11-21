@@ -317,6 +317,39 @@ export class Room {
     else this.startDiceRound();
   }
 
+  /**
+   * Starts a fresh round in place for a finished free-play dice table. Wager
+   * tables need a new deposit, and Zwanzig ab is a single game to zero, so both
+   * still go back to the lobby.
+   */
+  rematch(): void {
+    if (this.game === "zwanzig-ab") {
+      throw new Error("Zwanzig ab ends when a player reaches zero — start a new table");
+    }
+    if (this.mode !== "free") {
+      throw new Error("Start a new table to play another USDC round");
+    }
+    if (this.state !== "resolved") throw new Error("The round has not finished yet");
+    if (this.destroyed) throw new Error("This table is closed");
+
+    this.round += 1;
+    this.state = "in-progress";
+    this.phase = "play";
+    this.winnerSeat = null;
+    this.lastRound = null;
+    this.notice = null;
+    this.revealedSeed = null;
+    this.seedCommitment = null;
+    this.vrfDigest = null;
+    this.anteDeadline = null;
+    for (const seat of this.occupied) {
+      seat.active = true;
+      seat.anted = true;
+      seat.done = false;
+    }
+    this.startDiceRound();
+  }
+
   private startDiceRound(): void {
     if (this.session instanceof DiceSession) this.session.dispose();
     this.zwanzigSeed = null;
@@ -422,6 +455,9 @@ export class Room {
           this.notice = messageOf(error);
           this.changed();
         });
+        return;
+      case "rematch":
+        this.rematch();
         return;
       case "reroll":
       case "stand": {

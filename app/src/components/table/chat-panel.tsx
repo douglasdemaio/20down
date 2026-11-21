@@ -23,10 +23,10 @@ export function ChatPanel({ chat }: { chat: ChatEntry[] }) {
   };
 
   return (
-    <div className="flex h-full min-h-[16rem] flex-col">
-      <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
+    <div className="flex h-full min-h-[18rem] flex-col">
+      <div ref={listRef} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
         {chat.length === 0 ? (
-          <p className="pt-6 text-center text-xs text-parchment-200/35">
+          <p className="pt-8 text-center text-sm text-parchment-200/35">
             Table chat is quiet. Say hello.
           </p>
         ) : (
@@ -34,11 +34,11 @@ export function ChatPanel({ chat }: { chat: ChatEntry[] }) {
             const mine = room?.yourSeat === entry.seat;
             return (
               <div key={`${entry.at}-${index}`} className={mine ? "text-right" : ""}>
-                <p className="font-mono text-[9px] uppercase tracking-wider text-parchment-200/35">
+                <p className="font-mono text-[10px] uppercase tracking-wider text-parchment-200/35">
                   {entry.name}
                 </p>
                 <p
-                  className={`mt-0.5 inline-block max-w-[90%] break-words rounded-lg px-2.5 py-1.5 text-xs leading-relaxed ${
+                  className={`mt-0.5 inline-block max-w-[90%] break-words rounded-xl px-3 py-2 text-sm leading-relaxed ${
                     mine
                       ? "bg-brass-500/20 text-parchment-100"
                       : "bg-white/5 text-parchment-200/80"
@@ -51,17 +51,22 @@ export function ChatPanel({ chat }: { chat: ChatEntry[] }) {
           })
         )}
       </div>
-      <form onSubmit={submit} className="flex items-center gap-2 border-t border-white/10 p-2.5">
+      <form onSubmit={submit} className="flex items-center gap-2 border-t border-white/10 p-3 sm:p-4">
         <input
           value={text}
           onChange={(event) => setText(event.target.value)}
           maxLength={200}
           placeholder="Message the table…"
-          className="input !py-2 text-xs"
+          className="input !py-2.5 text-sm"
           disabled={!room}
         />
-        <button type="submit" className="btn-primary !px-3 !py-2" aria-label="Send message" disabled={!room}>
-          <Send className="h-3.5 w-3.5" />
+        <button
+          type="submit"
+          className="btn-primary !px-4 !py-2.5"
+          aria-label="Send message"
+          disabled={!room}
+        >
+          <Send className="h-4 w-4" />
         </button>
       </form>
     </div>

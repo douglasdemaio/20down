@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePathname } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import type { GameId, PlayMode, Suit } from "@wagerwake/shared";
 import type {
@@ -49,7 +50,7 @@ interface GameSocketValue {
   error: string | null;
   clearError: () => void;
   notice: string | null;
-  createTable: (options: CreateOptions) => void;
+  createTable: (options: CreateOptions, onCreated?: (tableId: string) => void) => void;
   joinTable: (tableId: string) => void;
   leaveTable: () => void;
   setReady: (ready: boolean) => void;
@@ -61,6 +62,7 @@ interface GameSocketValue {
   announce: (play: boolean) => void;
   playCard: (card: string) => void;
   nextDeal: () => void;
+  rematch: () => void;
   markDeposited: (signature: string) => void;
   sendChat: (text: string) => void;
   refreshLobby: () => void;
@@ -72,6 +74,7 @@ const ID_KEY = "ww.player.v1";
 export function GameSocketProvider({ children }: { children: React.ReactNode }) {
   const { publicKey } = useWallet();
   const wallet = publicKey?.toBase58() ?? null;
+  const pathname = usePathname();
 
   const [status, setStatus] = useState<SocketStatus>("connecting");
   const [playerId, setPlayerId] = useState<string | null>(null);
@@ -89,8 +92,24 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
   const walletRef = useRef<string | null>(null);
   const playerRef = useRef<string | null>(null);
   const roomRef = useRef<RoomView | null>(null);
-  const pendingJoinRef = useRef<string | null>(null);
+  const pendingCreateRef = useRef<((tableId: string) => void) | null>(null);
+  const pathRef = useRef(pathname);
   const mountedRef = useRef(true);
+
+  useEffect(() => {
+    pathRef.current = pathname;
+  }, [pathname]);
+
+  /**
+   * The table the browser is actually looking at. After a reload `roomRef` is
+   * empty, so fall back to the /table/<id> URL before asking the server to
+   * re-seat us.
+   */
+  const viewingRoomId = useCallback((): string | undefined => {
+    if (roomRef.current?.id) return roomRef.current.id;
+    const match = /^\/table\/([^/?#]+)/.exec(pathRef.current ?? "");
+    return match ? decodeURIComponent(match[1] ?? "") : undefined;
+  }, []);
 
   useEffect(() => {
     nameRef.current = name;
@@ -100,9 +119,15 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
     walletRef.current = wallet;
     const socket = socketRef.current;
     if (socket?.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ type: "hello", wallet: wallet ?? undefined }));
+      socket.send(
+        JSON.stringify({
+          type: "hello",
+          wallet: wallet ?? undefined,
+          roomId: viewingRoomId(),
+        }),
+      );
     }
-  }, [wallet]);
+  }, [wallet, viewingRoomId]);
 
   useEffect(() => {
     setNameState(loadName());
@@ -132,6 +157,21 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
     [send],
   );
 
+  const sendCreate = useCallback(
+    (options: CreateOptions): boolean =>
+      send({
+        type: "create",
+        game: options.game,
+        mode: options.mode,
+        stakeBaseUnits: options.stakeBaseUnits,
+        maxPlayers: options.maxPlayers,
+        vsBots: options.vsBots,
+        name: nameRef.current,
+        wallet: walletRef.current ?? undefined,
+      }),
+    [send],
+  );
+
   const handleMessage = useCallback((message: ServerMessage) => {
     switch (message.type) {
       case "welcome": {
@@ -147,22 +187,23 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       case "lobby":
         setLobby(message.tables);
         break;
-      case "room":
+      case "room": {
         roomRef.current = message.room;
         setRoom(message.room);
+        const onCreated = pendingCreateRef.current;
+        pendingCreateRef.current = null;
+        onCreated?.(message.room.id);
         break;
+      }
       case "left": {
         roomRef.current = null;
         setRoom(null);
         setChat([]);
-        const pending = pendingJoinRef.current;
-        pendingJoinRef.current = null;
-        if (pending) sendJoin(pending);
         break;
       }
       case "error":
+        pendingCreateRef.current = null;
         setError(message.message);
-        pendingJoinRef.current = null;
         break;
       case "notice":
         setNotice(message.message);
@@ -176,7 +217,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       case "pong":
         break;
     }
-  }, [sendJoin]);
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -196,6 +237,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
             playerId: playerRef.current ?? undefined,
             name: nameRef.current,
             wallet: walletRef.current ?? undefined,
+            roomId: viewingRoomId(),
           }),
         );
       });
@@ -239,7 +281,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [handleMessage]);
+  }, [handleMessage, viewingRoomId]);
 
   const setName = useCallback(
     (next: string) => {
@@ -253,39 +295,28 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
   );
 
   const createTable = useCallback(
-    (options: CreateOptions) => {
+    (options: CreateOptions, onCreated?: (tableId: string) => void) => {
       setError(null);
       setChat([]);
-      send({
-        type: "create",
-        game: options.game,
-        mode: options.mode,
-        stakeBaseUnits: options.stakeBaseUnits,
-        maxPlayers: options.maxPlayers,
-        vsBots: options.vsBots,
-        name: nameRef.current,
-        wallet: walletRef.current ?? undefined,
-      });
+      pendingCreateRef.current = onCreated ?? null;
+      // The server releases the previous seat for us (or asks for a refund
+      // first when USDC is still escrowed).
+      if (!sendCreate(options)) pendingCreateRef.current = null;
     },
-    [send],
+    [sendCreate],
   );
 
   const joinTable = useCallback(
     (tableId: string) => {
       if (roomRef.current?.id === tableId) return;
       setError(null);
-      if (roomRef.current) {
-        pendingJoinRef.current = tableId;
-        send({ type: "leave" });
-      } else {
-        sendJoin(tableId);
-      }
+      setChat([]);
+      sendJoin(tableId);
     },
-    [send, sendJoin],
+    [sendJoin],
   );
 
   const leaveTable = useCallback(() => {
-    pendingJoinRef.current = null;
     send({ type: "leave" });
   }, [send]);
 
@@ -316,6 +347,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       announce: (play) => send({ type: "announce", play }),
       playCard: (card) => send({ type: "playCard", card }),
       nextDeal: () => send({ type: "nextDeal" }),
+      rematch: () => send({ type: "rematch" }),
       markDeposited: (signature) => send({ type: "deposited", signature }),
       sendChat: (text) => {
         const clean = text.trim().slice(0, 200);

@@ -149,6 +149,220 @@ describe("Hub HTTP + WebSocket", () => {
     socket.close();
   }, 20_000);
 
+  it("starts another round in place when a free dice table is resolved", async () => {
+    running = createHubServer(testConfig(), null);
+    const port = await listen(running);
+    const { socket, waitFor, ready, messages } = connect(port);
+    await ready;
+    const welcome = await waitFor((m) => m.type === "welcome");
+    const playerId = welcome.type === "welcome" ? welcome.playerId : "";
+
+    socket.send(JSON.stringify({ type: "hello", name: "Ada", playerId }));
+    socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "ship-captain-crew",
+        mode: "free",
+        name: "Ada",
+        vsBots: true,
+      }),
+    );
+    const created = await waitFor((m) => m.type === "room");
+    if (created.type !== "room") throw new Error("unreachable");
+
+    // Put the room into the state a finished round leaves it in, then use the
+    // same websocket action the table UI sends.
+    const room = running!.hub.rooms.get(created.room.id);
+    if (!room) throw new Error("room missing");
+    room.state = "resolved";
+    room.phase = "resolved";
+
+    socket.send(JSON.stringify({ type: "rematch" }));
+    const restarted = await waitFor(
+      (m) => m.type === "room" && m.room.state === "in-progress",
+      10_000,
+    );
+    if (restarted.type !== "room") throw new Error("unreachable");
+    expect(restarted.room.round).toBe(created.room.round + 1);
+    expect(restarted.room.phase).toBe("play");
+    expect(messages.some((m) => m.type === "error")).toBe(false);
+    socket.close();
+  }, 20_000);
+
+  it("switches from a waiting table into a new game and releases the old seat", async () => {
+    running = createHubServer(testConfig(), null);
+    const port = await listen(running);
+    const { socket, waitFor, ready, messages } = connect(port);
+    await ready;
+    const welcome = await waitFor((m) => m.type === "welcome");
+    const playerId = welcome.type === "welcome" ? welcome.playerId : "";
+
+    socket.send(JSON.stringify({ type: "hello", name: "Ada", playerId }));
+    socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "ship-captain-crew",
+        mode: "free",
+        name: "Ada",
+        vsBots: false,
+      }),
+    );
+    const first = await waitFor((m) => m.type === "room");
+    if (first.type !== "room") throw new Error("unreachable");
+
+    socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "horses",
+        mode: "free",
+        name: "Ada",
+        vsBots: true,
+      }),
+    );
+    const second = await waitFor(
+      (m) => m.type === "room" && m.room.game === "horses",
+      10_000,
+    );
+    if (second.type !== "room") throw new Error("unreachable");
+    expect(second.room.id).not.toBe(first.room.id);
+    expect(second.room.yourSeat).not.toBeNull();
+    expect(messages.some((m) => m.type === "error")).toBe(false);
+
+    const lobby = await fetch(`http://127.0.0.1:${port}/api/lobby`).then((r) => r.json());
+    expect(lobby.tables.map((table: { id: string }) => table.id)).not.toContain(first.room.id);
+    socket.close();
+  }, 20_000);
+
+  it("joins another waiting table without asking the player to leave first", async () => {
+    running = createHubServer(testConfig(), null);
+    const port = await listen(running);
+
+    const host = connect(port);
+    await host.ready;
+    const hostWelcome = await host.waitFor((m) => m.type === "welcome");
+    const hostId = hostWelcome.type === "welcome" ? hostWelcome.playerId : "";
+    host.socket.send(JSON.stringify({ type: "hello", name: "Host", playerId: hostId }));
+    host.socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "ship-captain-crew",
+        mode: "free",
+        name: "Host",
+        vsBots: false,
+      }),
+    );
+    const hosted = await host.waitFor((m) => m.type === "room");
+    if (hosted.type !== "room") throw new Error("unreachable");
+
+    const guest = connect(port);
+    await guest.ready;
+    const guestWelcome = await guest.waitFor((m) => m.type === "welcome");
+    const guestId = guestWelcome.type === "welcome" ? guestWelcome.playerId : "";
+    guest.socket.send(JSON.stringify({ type: "hello", name: "Guest", playerId: guestId }));
+    guest.socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "horses",
+        mode: "free",
+        name: "Guest",
+        vsBots: false,
+      }),
+    );
+    const other = await guest.waitFor((m) => m.type === "room");
+    if (other.type !== "room") throw new Error("unreachable");
+
+    guest.socket.send(
+      JSON.stringify({ type: "join", tableId: hosted.room.id, name: "Guest" }),
+    );
+    const joined = await guest.waitFor(
+      (m) => m.type === "room" && m.room.id === hosted.room.id,
+      10_000,
+    );
+    if (joined.type !== "room") throw new Error("unreachable");
+    expect(joined.room.yourSeat).not.toBeNull();
+    expect(joined.room.seats).toHaveLength(2);
+    expect(guest.messages.some((m) => m.type === "error")).toBe(false);
+
+    const lobby = await fetch(`http://127.0.0.1:${port}/api/lobby`).then((r) => r.json());
+    expect(lobby.tables.map((table: { id: string }) => table.id)).not.toContain(other.room.id);
+
+    host.socket.close();
+    guest.socket.close();
+  }, 20_000);
+
+  it("switches away from an in-progress game and only re-seats on an explicit room hint", async () => {
+    running = createHubServer(testConfig(), null);
+    const port = await listen(running);
+    const first = connect(port);
+    await first.ready;
+    const welcome = await first.waitFor((m) => m.type === "welcome");
+    const playerId = welcome.type === "welcome" ? welcome.playerId : "";
+
+    first.socket.send(JSON.stringify({ type: "hello", name: "Ada", playerId }));
+    first.socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "ship-captain-crew",
+        mode: "free",
+        name: "Ada",
+        vsBots: true,
+      }),
+    );
+    const room = await first.waitFor((m) => m.type === "room");
+    if (room.type !== "room") throw new Error("unreachable");
+    const oldRoomId = room.room.id;
+
+    first.socket.send(JSON.stringify({ type: "ready", ready: true }));
+    await first.waitFor(
+      (m) => m.type === "room" && m.room.state !== "waiting",
+      10_000,
+    );
+
+    // Open another game while the first table is still live.
+    first.socket.send(
+      JSON.stringify({
+        type: "create",
+        game: "horses",
+        mode: "free",
+        name: "Ada",
+        vsBots: true,
+      }),
+    );
+    const next = await first.waitFor(
+      (m) => m.type === "room" && m.room.game === "horses",
+      10_000,
+    );
+    if (next.type !== "room") throw new Error("unreachable");
+    expect(next.room.id).not.toBe(oldRoomId);
+    expect(first.messages.some((m) => m.type === "error")).toBe(false);
+
+    // Returning to a seat held mid-game is allowed (it is not a new join).
+    first.socket.send(JSON.stringify({ type: "join", tableId: oldRoomId }));
+    const returned = await first.waitFor(
+      (m) => m.type === "room" && m.room.id === oldRoomId,
+      10_000,
+    );
+    if (returned.type !== "room") throw new Error("unreachable");
+    expect(returned.room.yourSeat).not.toBeNull();
+
+    // A reconnect that only knows the player id must not drag the player back
+    // into the abandoned table.
+    first.socket.close();
+    const second = connect(port);
+    await second.ready;
+    await second.waitFor((m) => m.type === "welcome");
+    second.socket.send(JSON.stringify({ type: "hello", playerId }));
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(second.messages.some((m) => m.type === "room")).toBe(false);
+
+    // The browser's explicit room hint still restores the live seat.
+    second.socket.send(JSON.stringify({ type: "hello", playerId, roomId: oldRoomId }));
+    const adopted = await second.waitFor((m) => m.type === "room");
+    if (adopted.type !== "room") throw new Error("unreachable");
+    expect(adopted.room.id).toBe(oldRoomId);
+    second.socket.close();
+  }, 30_000);
+
   it("rejects wager tables while the chain is disabled", async () => {
     running = createHubServer(testConfig(), null);
     const port = await listen(running);

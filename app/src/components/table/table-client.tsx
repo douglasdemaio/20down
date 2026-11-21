@@ -11,6 +11,7 @@ import {
   LogOut,
   MessageCircle,
   Play,
+  RotateCcw,
   Share2,
   Users,
   Wallet,
@@ -27,7 +28,8 @@ import { RoundSummary, FairnessCard } from "./round-summary";
 
 export function TableClient({ tableId }: { tableId: string }) {
   const router = useRouter();
-  const { status, room, joinTable, leaveTable, setReady, startGame, chat } = useGameSocket();
+  const { status, room, joinTable, leaveTable, setReady, startGame, rematch, createTable, chat } =
+    useGameSocket();
   const joinAttempted = useRef(false);
   const [timedOut, setTimedOut] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -95,11 +97,26 @@ export function TableClient({ tableId }: { tableId: string }) {
   const isHost = room.yourSeat === room.hostSeat;
   const deposited = Boolean(yourSeat?.ready);
   const playing = room.state !== "waiting";
+  const canRematch =
+    room.mode === "free" && room.game !== "zwanzig-ab" && room.yourSeat !== null;
 
   const leave = () => {
     if (room.mode === "wager" && deposited) return;
     leaveTable();
     router.push("/");
+  };
+
+  const newGame = () => {
+    createTable(
+      {
+        game: room.game,
+        mode: room.mode,
+        stakeBaseUnits: room.stake ?? undefined,
+        maxPlayers: room.maxPlayers,
+        vsBots: room.seats.some((seat) => seat.isBot),
+      },
+      (tableId) => router.push(`/table/${tableId}`),
+    );
   };
 
   return (
@@ -200,11 +217,31 @@ export function TableClient({ tableId }: { tableId: string }) {
           {playing && room.state === "resolved" ? (
             <div className="panel flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <p className="text-xs text-parchment-200/55">
-                This table has finished. Start another one whenever you are ready.
+                {canRematch
+                  ? "Round settled. Stay at the table for another round."
+                  : "This table has finished. Start another one whenever you are ready."}
               </p>
-              <Link href="/" className="btn-ghost py-1.5 text-xs">
-                Back to lobby
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                {canRematch ? (
+                  <button
+                    type="button"
+                    className="btn-primary py-2.5 text-xs"
+                    onClick={() => rematch()}
+                  >
+                    <RotateCcw className="h-4 w-4" /> Play another round
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={`${canRematch ? "btn-ghost" : "btn-primary"} py-2.5 text-xs`}
+                  onClick={newGame}
+                >
+                  <RotateCcw className="h-4 w-4" /> New game
+                </button>
+                <Link href="/" className="btn-ghost py-2.5 text-xs">
+                  Back to lobby
+                </Link>
+              </div>
             </div>
           ) : null}
         </div>

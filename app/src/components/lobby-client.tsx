@@ -49,6 +49,7 @@ export function LobbyClient() {
     createTable,
     joinTable,
     refreshLobby,
+    error,
   } = useGameSocket();
 
   const [draftName, setDraftName] = useState(name);
@@ -63,12 +64,28 @@ export function LobbyClient() {
     router.push(`/table/${room.id}`);
   }, [room, router]);
 
+  // A rejected create/join must not leave a stale redirect armed.
+  useEffect(() => {
+    if (!error) return;
+    pendingCreateRef.current = false;
+    setJoining(null);
+  }, [error]);
+
   useEffect(() => {
     if (status === "online") refreshLobby();
   }, [status, refreshLobby]);
 
   const tables = lobby.filter((table) => table.mode === mode);
   const openSeats = tables.reduce((sum, table) => sum + table.seats, 0);
+  const liveRoom =
+    room && room.state !== "resolved" && room.state !== "voided" ? room : null;
+  const escrowSeat =
+    liveRoom && liveRoom.mode === "wager"
+      ? liveRoom.seats.find((seat) => seat.seat === liveRoom.yourSeat)
+      : null;
+  // Switching away from a deposited wager seat would abandon live escrow, so
+  // new tables stay locked until the player finishes or refunds.
+  const escrowLocked = Boolean(escrowSeat?.ready);
 
   const commitName = () => {
     const clean = draftName.trim();
@@ -87,38 +104,38 @@ export function LobbyClient() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-8 pt-8 sm:px-6">
-      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-ink-900/50 px-5 py-8 shadow-card sm:px-8 sm:py-10">
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-ink-900/50 px-5 py-10 shadow-card sm:px-10 sm:py-14">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_20%,rgba(212,168,79,0.14),transparent_45%),radial-gradient(circle_at_15%_100%,rgba(29,107,82,0.28),transparent_55%)]" />
         <div className="relative grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div>
             <p className="label flex items-center gap-2">
-              <Spade className="h-3.5 w-3.5" />
+              <Spade className="h-4 w-4" />
               {mode === "free" ? "The free tables are open" : "USDC tables · Solana devnet"}
             </p>
-            <h1 className="mt-3 max-w-2xl font-display text-4xl leading-[1.05] text-parchment-100 sm:text-5xl">
+            <h1 className="mt-4 max-w-2xl font-display text-5xl leading-[1.05] text-parchment-100 sm:text-6xl">
               Pull up a chair.
               <span className="block text-brass-300">Roll the bones. Play the hand.</span>
             </h1>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-parchment-200/65 sm:text-base">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-parchment-200/70 sm:text-lg">
               Three classic pub games, one table. Ship, Captain &amp; Crew and Horses use five
               dice; Zwanzig ab is a German trick-taker. Play free with bots or friends — or open a
               USDC table escrowed by an on-chain Solana program.
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <span className="chip-live">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
+            <div className="mt-7 flex flex-wrap items-center gap-2.5">
+              <span className="chip-live !px-3 !py-1.5 !text-[11px]">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" />
                 {tables.length} {mode === "wager" ? "wager" : "free"} table
                 {tables.length === 1 ? "" : "s"}
               </span>
-              <span className="chip">
-                <Users className="h-3 w-3" /> {openSeats} seated
+              <span className="chip !px-3 !py-1.5 !text-[11px]">
+                <Users className="h-3.5 w-3.5" /> {openSeats} seated
               </span>
-              <span className="chip">
-                <Dices className="h-3 w-3" /> 2–8 players
+              <span className="chip !px-3 !py-1.5 !text-[11px]">
+                <Dices className="h-3.5 w-3.5" /> 2–8 players
               </span>
-              <span className="chip">
-                <Coins className="h-3 w-3" /> 0.01–1.00 USDC
+              <span className="chip !px-3 !py-1.5 !text-[11px]">
+                <Coins className="h-3.5 w-3.5" /> 0.01–1.00 USDC
               </span>
             </div>
           </div>
@@ -148,6 +165,21 @@ export function LobbyClient() {
           </div>
         </div>
       </section>
+
+      {liveRoom ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brass-400/25 bg-brass-500/[0.07] px-4 py-3 text-sm">
+          <p className="text-parchment-200/70">
+            You are still seated at{" "}
+            <span className="font-semibold text-parchment-100">{liveRoom.gameName}</span>.{" "}
+            {liveRoom.mode === "wager" && escrowLocked
+              ? "Finish or refund your USDC seat before opening another table."
+              : "Starting another game will release that seat."}
+          </p>
+          <Link href={`/table/${liveRoom.id}`} className="btn-ghost py-1.5 text-xs">
+            Return to table <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      ) : null}
 
       <section className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="panel flex flex-wrap items-center gap-3 px-4 py-3">
@@ -237,7 +269,7 @@ export function LobbyClient() {
               key={gameId}
               gameId={gameId}
               mode={mode}
-              disabled={status !== "online" || (mode === "wager" && (!publicKey || limitReached))}
+              disabled={status !== "online" || escrowLocked || (mode === "wager" && (!publicKey || limitReached))}
               onFree={(withBots) => {
                 pendingCreateRef.current = true;
                 createTable({ game: gameId, mode: "free", vsBots: withBots });
@@ -299,7 +331,7 @@ export function LobbyClient() {
               {tables.map((table) => {
                 const full = table.seats >= table.maxPlayers;
                 const started = table.state !== "waiting";
-                const canJoin = !started && !full && status === "online";
+                const canJoin = !started && !full && status === "online" && !escrowLocked;
                 return (
                   <li
                     key={table.id}
@@ -387,20 +419,20 @@ function GameCard({
   );
 
   return (
-    <article className="panel group relative flex flex-col overflow-hidden">
-      <div className="relative flex h-36 items-center justify-center overflow-hidden border-b border-white/10 bg-gradient-to-b from-white/[0.04] to-transparent">
+    <article className="panel group relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:border-brass-400/30 hover:shadow-[0_8px_30px_rgba(212,168,79,0.08)]">
+      <div className="relative flex h-48 items-center justify-center overflow-hidden border-b border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent">
         <GameArt gameId={gameId} />
       </div>
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-start justify-between gap-2">
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="font-display text-xl text-parchment-100">{meta.name}</h3>
-            <p className="mt-1 text-xs leading-relaxed text-parchment-200/55">{meta.blurb}</p>
+            <h3 className="font-display text-2xl text-parchment-100">{meta.name}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-parchment-200/60">{meta.blurb}</p>
           </div>
-          <span className="chip shrink-0">{meta.minPlayers}–{meta.maxPlayers}p</span>
+          <span className="chip shrink-0 !px-3 !py-1.5">{meta.minPlayers}–{meta.maxPlayers}p</span>
         </div>
 
-        <div className="mt-4 flex-1" />
+        <div className="mt-5 flex-1" />
 
         {mode === "wager" ? (
           <div className="space-y-3">

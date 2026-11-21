@@ -122,6 +122,59 @@ describe("Room (free play)", () => {
     room.destroy();
   });
 
+  it("starts another free dice round in place after the table resolves", () => {
+    const { room } = freeRoom("horses");
+    room.addPlayer({ playerId: "p1", name: "Ada" });
+    room.addPlayer({ playerId: "bot", name: "Bones", isBot: true });
+    // A completed round leaves the room resolved; rematch should reset the
+    // table in place instead of forcing the players back to the lobby.
+    room.state = "resolved";
+    room.phase = "resolved";
+    room.lastRound = {
+      round: room.round,
+      rows: [],
+      tie: false,
+      winners: [0],
+      carryOver: false,
+    };
+    const before = room.round;
+    room.rematch();
+    expect(room.state).toBe("in-progress");
+    expect(room.phase).toBe("play");
+    expect(room.round).toBe(before + 1);
+    expect(room.lastRound).toBeNull();
+    expect(room.session).not.toBeNull();
+    expect(room.seedCommitment).toMatch(/^[0-9a-f]{64}$/);
+    // A second request while the new round is live is rejected, so one player
+    // cannot restart the table out from under everyone else.
+    expect(() => room.rematch()).toThrow(/not finished/i);
+    room.destroy();
+  });
+
+  it("refuses an in-place rematch for Zwanzig ab and USDC tables", () => {
+    const { room } = freeRoom("zwanzig-ab");
+    room.state = "resolved";
+    expect(() => room.rematch()).toThrow(/new table/i);
+    room.destroy();
+
+    const wager = new Room({
+      id: createRoomId(),
+      game: "horses",
+      mode: "wager",
+      stakeBaseUnits: 10_000n,
+      feeBaseUnits: 20_000n,
+      maxPlayers: 2,
+      hostName: "Host",
+      chain: null,
+      turnTimeoutMs: TURN_TIMEOUT_MS,
+      anteTimeoutMs: ANTE_TIMEOUT_MS,
+      hooks: { onChange: () => {}, onDestroy: () => {} },
+    });
+    wager.state = "resolved";
+    expect(() => wager.rematch()).toThrow(/USDC/i);
+    wager.destroy();
+  });
+
   it("carries a tied pot into a fresh round without charging a fee", async () => {
     vi.useFakeTimers();
     const { room } = freeRoom("horses");

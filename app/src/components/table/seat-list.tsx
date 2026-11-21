@@ -31,12 +31,12 @@ export function SeatList({ room }: { room: RoomView }) {
         return (
           <li
             key={seat.seat}
-            className={`flex items-center gap-3 px-4 py-2.5 ${
+            className={`flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 ${
               turn ? "bg-brass-500/[0.07]" : ""
             }`}
           >
             <span
-              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
+              className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${
                 turn
                   ? "border-brass-400 bg-brass-500/20 text-brass-300"
                   : you
@@ -44,16 +44,22 @@ export function SeatList({ room }: { room: RoomView }) {
                     : "border-white/10 bg-white/5 text-parchment-200/70"
               }`}
             >
-              {seat.isBot ? <Bot className="h-4 w-4" /> : initials(seat.name)}
+              {seat.isBot ? <Bot className="h-5 w-5" /> : initials(seat.name)}
               {turn ? (
-                <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-ink-900 bg-brass-400" />
+                <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-ink-900 bg-brass-400" />
               ) : null}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1.5 truncate text-sm text-parchment-100">
+              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-parchment-100">
                 <span className="truncate">{seat.name}</span>
-                {you ? <span className="chip !px-1.5 !py-0 !text-[8px] text-emerald-200">you</span> : null}
-                {room.hostSeat === seat.seat ? <Crown className="h-3 w-3 text-brass-400" /> : null}
+                {you ? (
+                  <span className="chip !px-1.5 !py-0 !text-[9px] !uppercase text-emerald-200">
+                    you
+                  </span>
+                ) : null}
+                {room.hostSeat === seat.seat ? (
+                  <Crown className="h-3.5 w-3.5 text-brass-400" />
+                ) : null}
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-[10px] text-parchment-200/40">
                 {status}

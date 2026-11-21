@@ -151,7 +151,14 @@ export interface TxResponse {
 /* ------------------------------------------------------------------ */
 
 export type ClientMessage =
-  | { type: "hello"; playerId?: string; name?: string; wallet?: string }
+  | {
+      type: "hello";
+      playerId?: string;
+      name?: string;
+      wallet?: string;
+      /** The table the browser is currently viewing, if any. */
+      roomId?: string;
+    }
   | { type: "lobby" }
   | {
       type: "create";
@@ -174,6 +181,7 @@ export type ClientMessage =
   | { type: "announce"; play: boolean }
   | { type: "playCard"; card: string }
   | { type: "nextDeal" }
+  | { type: "rematch" }
   | { type: "deposited"; signature: string }
   | { type: "chat"; text: string }
   | { type: "ping" };
@@ -214,6 +222,7 @@ const CLIENT_MESSAGE_TYPES = new Set<ClientMessage["type"]>([
   "announce",
   "playCard",
   "nextDeal",
+  "rematch",
   "deposited",
   "chat",
   "ping",

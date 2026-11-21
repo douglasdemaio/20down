@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Crown, Hand, Heart, LogOut, Sparkles } from "lucide-react";
+import { Crown, Hand, Heart, LogOut, Sparkles, HelpCircle } from "lucide-react";
 import {
   MAX_EXCHANGE,
   SUIT_SYMBOL,
@@ -25,6 +25,7 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
   const { chooseTrump, exchange, announce, playCard, nextDeal } = useGameSocket();
   const view = room.zwanzig;
   const [selected, setSelected] = useState<string[]>([]);
+  const [showHelp, setShowHelp] = useState(false);
 
   const seatKey = view ? `${view.dealNumber}:${view.currentActor}:${view.phase}` : "none";
   useEffect(() => setSelected([]), [seatKey]);
@@ -76,15 +77,72 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
               {view.forcedHearts ? "hearts forced (doubled)" : view.trump ? `${SUIT_NAME[view.trump]} trump${view.trump === "hearts" ? " (doubled)" : ""}` : "trump not chosen"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {room.turnDeadline ? (
               <Countdown deadline={room.turnDeadline} serverTime={room.serverTime} totalMs={room.turnTimeoutMs} />
             ) : null}
             <span className={view.trump === "hearts" ? "chip-warn" : "chip"}>
               {view.trump ? `${SUIT_SYMBOL[view.trump]} ${SUIT_NAME[view.trump]}` : "no trump"}
             </span>
+            <button
+              type="button"
+              onClick={() => setShowHelp(!showHelp)}
+              className="rounded-full border border-white/15 bg-white/5 p-2 text-parchment-200/70 transition hover:border-brass-400/50 hover:text-parchment-100"
+              aria-label="How to play"
+              title="How to play"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
           </div>
         </div>
+
+        {showHelp ? (
+          <div className="mt-4 rounded-xl border border-brass-400/30 bg-brass-500/[0.06] p-4 text-xs leading-relaxed text-parchment-200/70">
+            <p>
+              <strong className="text-parchment-100">Goal:</strong> Be the first to reach 0 points
+              or less. Start at 20; each trick you win is −1. Win no tricks and you get +5. Hearts
+              trump doubles all changes. Follow suit if you can, otherwise play a trump. The
+              lowest score wins — most negative breaks ties.
+            </p>
+          </div>
+        ) : null}
+
+        {view.trump ? (
+          <div
+            className={`mt-4 flex flex-wrap items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
+              view.trump === "hearts"
+                ? "border-coral-400/60 bg-coral-500/[0.12]"
+                : view.trump === "diamonds"
+                  ? "border-brass-400/60 bg-brass-500/[0.12]"
+                  : "border-brass-400/40 bg-brass-500/[0.08]"
+            }`}
+          >
+            <span
+              className={`font-display text-4xl leading-none ${
+                view.trump === "hearts" || view.trump === "diamonds"
+                  ? "text-red-300"
+                  : "text-parchment-100"
+              }`}
+              aria-hidden
+            >
+              {SUIT_SYMBOL[view.trump]}
+            </span>
+            <div>
+              <p className="label">Trump suit</p>
+              <p className="font-display text-lg leading-tight text-parchment-100">
+                {SUIT_NAME[view.trump]}
+                {view.trump === "hearts" ? " — doubled" : ""}
+              </p>
+            </div>
+            <p className="ml-auto max-w-xs text-[11px] leading-relaxed text-parchment-200/55">
+              {view.trump === "hearts"
+                ? "Every score change is doubled while hearts are trump."
+                : view.trump === "diamonds"
+                  ? "Diamonds are trump — everyone must play this deal."
+                  : `Highest ${SUIT_NAME[view.trump]} wins the trick.`}
+            </p>
+          </div>
+        ) : null}
 
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {view.scores.map((score, seat) => {
@@ -130,7 +188,7 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
           })}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-ink-950/40 p-4">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-ink-950/40 p-5">
           <div className="flex items-center justify-between gap-2">
             <p className="label">
               Trick {view.trickNumber} of 5
@@ -141,11 +199,11 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
             </p>
           </div>
 
-          <div className="mt-3 flex min-h-[6rem] flex-wrap items-center justify-center gap-2">
+          <div className="mt-4 flex min-h-[9rem] flex-wrap items-center justify-center gap-3">
             {view.trick && view.trick.cards.length > 0 ? (
               view.trick.cards.map((entry) => (
                 <div key={`${entry.seat}-${cardId(entry.card)}`} className="text-center">
-                  <PlayingCard card={entry.card} />
+                  <PlayingCard card={entry.card} trump={entry.card.suit === view.trump} />
                   <p className="mt-1 max-w-[4.5rem] truncate font-mono text-[9px] uppercase tracking-wider text-parchment-200/45">
                     {seatName(entry.seat)}
                   </p>
@@ -187,6 +245,7 @@ export function ZwanzigBoard({ room }: { room: RoomView }) {
                 <PlayingCard
                   key={id}
                   card={card}
+                  trump={card.suit === view.trump}
                   selected={isSelected}
                   dimmed={view.phase === "play" && yourTurn && !isLegal}
                   onClick={

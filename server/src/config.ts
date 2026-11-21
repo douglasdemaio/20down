@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { isIP } from "node:net";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { WAGERWAKE_PROGRAM_ID, usdcMintForCluster } from "@wagerwake/shared/chain";
 import { PLATFORM_TREASURY } from "@wagerwake/shared";
@@ -30,6 +31,14 @@ function envBool(value: string | undefined, fallback = false): boolean {
   return value === "1" || value.toLowerCase() === "true" || value.toLowerCase() === "yes";
 }
 
+/** Resolve a listen host. Bind hostnames that are not loopback to all interfaces
+ * so local browsers can reach the hub via localhost/127.0.0.1. */
+function listenHost(value: string | undefined): string {
+  if (!value) return "0.0.0.0";
+  if (value === "localhost" || isIP(value)) return value;
+  return "0.0.0.0";
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const cluster = env.SOLANA_CLUSTER ?? "devnet";
   const rpcUrl =
@@ -43,7 +52,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const chainEnabled = envBool(env.CHAIN_ENABLED, false);
 
   return {
-    host: env.HOST ?? "0.0.0.0",
+    host: listenHost(env.HOST),
     port: Number(env.PORT ?? 8787),
     rpcUrl,
     cluster,
