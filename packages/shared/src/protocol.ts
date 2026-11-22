@@ -154,6 +154,14 @@ export type ClientMessage =
       maxPlayers?: number;
     }
   | { type: "join"; tableId: string; name?: string; wallet?: string }
+  | {
+      type: "quickMatch";
+      mode: PlayMode;
+      stakeBaseUnits?: string;
+      maxPlayers?: number;
+      name?: string;
+      wallet?: string;
+    }
   | { type: "leave" }
   | { type: "ready"; ready: boolean }
   | { type: "start" }
@@ -193,6 +201,7 @@ const CLIENT_MESSAGE_TYPES = new Set<ClientMessage["type"]>([
   "lobby",
   "create",
   "join",
+  "quickMatch",
   "leave",
   "ready",
   "start",

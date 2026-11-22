@@ -31,7 +31,7 @@ export const GAMES: Record<GameId, GameMeta> = {
     minPlayers: 3,
     maxPlayers: 4,
     unit: "action",
-    rulesPath: "/rules/zwanzig-ab",
+    rulesPath: "/rules/20-down",
   },
 };
 
