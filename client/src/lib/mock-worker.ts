@@ -79,8 +79,12 @@ export class MockWorker {
       case "ready": {
         const room = this.currentRoom();
         const seat = this.yourSeat(room);
-        if (room && seat) {
+        if (room && seat && room.view.state === "waiting") {
           seat.ready = message.ready;
+          if (room.view.seats.every((s) => s.ready || s.isBot)) {
+            this.startGame();
+            return;
+          }
           this.sync(room);
         }
         return;
@@ -179,8 +183,8 @@ export class MockWorker {
   }
 
   private currentRoom(): MockTable | null {
-    const id = this.playerId ? this.seatByPlayer.get(this.playerId) : null;
-    return id ? (this.rooms.get(id) ?? null) : null;
+    if (!this.playerId) return null;
+    return this.rooms.get(this.playerId) ?? null;
   }
 
   private yourSeat(room: MockTable | null): SeatPublic | null {
