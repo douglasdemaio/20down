@@ -19,15 +19,13 @@ export const WAGERWAKE_PROGRAM_ID = new PublicKey(
 export const CONFIG_SEED = "config";
 export const TABLE_SEED = "table";
 
+// Numeric codes are the on-chain encoding. Only 20 Down is exposed by the new
+// build; Phase 5 defines the mainnet program's code set.
 export const GAME_CODE: Record<GameId, number> = {
-  "ship-captain-crew": 0,
-  horses: 1,
   "zwanzig-ab": 2,
 };
 
 export const GAME_BY_CODE: Record<number, GameId> = {
-  0: "ship-captain-crew",
-  1: "horses",
   2: "zwanzig-ab",
 };
 

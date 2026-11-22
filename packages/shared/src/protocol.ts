@@ -2,8 +2,8 @@
  * Realtime protocol shared by the Node game server and the browser client.
  *
  * Every message is plain JSON. The server is authoritative for all game state;
- * the client only ever sends intents (which dice to reroll, which card to play)
- * and never computes an outcome that is paid out.
+ * the client only ever sends card-play intents and never computes an outcome
+ * that is paid out.
  */
 
 import type { Suit, ZwanzigView } from "./games/zwanzig.js";
@@ -33,21 +33,6 @@ export interface SeatPublic {
   anted: boolean;
   /** Set once the seat has finished its turn in the current round. */
   done: boolean;
-}
-
-export interface DicePublicState {
-  /** 1-based roll within the current turn. */
-  rollNumber: number;
-  dice: number[];
-  locked: boolean[];
-  stage: number;
-  qualified: boolean;
-  cargoDice: number[];
-  cargoScore: number;
-  rollsUsed: number;
-  rollLimit: number;
-  canReroll: boolean;
-  canStand: boolean;
 }
 
 export interface RoundResultRow {
@@ -109,8 +94,6 @@ export interface RoomView {
   seedCommitment: string | null;
   revealedSeed: string | null;
   vrfDigest: string | null;
-  dice: DicePublicState | null;
-  diceBySeat: Array<DicePublicState | null>;
   zwanzig: ZwanzigView | null;
   lastRound: RoundSummary | null;
   winnerSeat: number | null;
@@ -174,8 +157,6 @@ export type ClientMessage =
   | { type: "leave" }
   | { type: "ready"; ready: boolean }
   | { type: "start" }
-  | { type: "reroll"; mask: number }
-  | { type: "stand" }
   | { type: "trump"; suit: Suit }
   | { type: "exchange"; cards: string[] }
   | { type: "announce"; play: boolean }
@@ -215,8 +196,6 @@ const CLIENT_MESSAGE_TYPES = new Set<ClientMessage["type"]>([
   "leave",
   "ready",
   "start",
-  "reroll",
-  "stand",
   "trump",
   "exchange",
   "announce",

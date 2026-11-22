@@ -6,7 +6,7 @@
  * Node realtime server (authoritative game state).
  */
 
-export type GameId = "ship-captain-crew" | "horses" | "zwanzig-ab";
+export type GameId = "zwanzig-ab";
 
 export type PlayMode = "free" | "wager";
 
@@ -17,38 +17,18 @@ export interface GameMeta {
   blurb: string;
   minPlayers: number;
   maxPlayers: number;
-  /** Server-side unit of play: one "turn" for dice games, one card action for cards. */
-  unit: "turn" | "action";
+  /** The authoritative server advances play one card action at a time. */
+  unit: "action";
   rulesPath: string;
 }
 
 export const GAMES: Record<GameId, GameMeta> = {
-  "ship-captain-crew": {
-    id: "ship-captain-crew",
-    name: "Ship, Captain & Crew",
-    shortName: "Ship & Crew",
-    blurb: "Lock a 6, then a 5, then a 4. Whatever is left is your cargo.",
-    minPlayers: 2,
-    maxPlayers: 8,
-    unit: "turn",
-    rulesPath: "/rules/ship-captain-crew",
-  },
-  horses: {
-    id: "horses",
-    name: "Horses",
-    shortName: "Horses",
-    blurb: "Most matching dice wins. Ones are wild, and the leader sets the roll limit.",
-    minPlayers: 2,
-    maxPlayers: 8,
-    unit: "turn",
-    rulesPath: "/rules/horses",
-  },
   "zwanzig-ab": {
     id: "zwanzig-ab",
-    name: "Zwanzig ab (20 Down)",
+    name: "20 Down",
     shortName: "20 Down",
     blurb: "German trick-taking: start at 20 points and trick your way down to zero.",
-    minPlayers: 2,
+    minPlayers: 3,
     maxPlayers: 4,
     unit: "action",
     rulesPath: "/rules/zwanzig-ab",
@@ -75,10 +55,18 @@ export const USDC_MINT_DEVNET = "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU";
 export const USDC_MINT_MAINNET = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 export const PLATFORM_TREASURY = "J59EPyPHf9wtoLjf8rG4f9cARnLnUPKCdNwZX241rakh";
 
-/** 0.01 USDC */
-export const MIN_STAKE_BASE_UNITS = 10_000n;
-/** 1.00 USDC — hard program-enforced ceiling. */
+/** 0.10 USDC — the smallest accepted stake. */
+export const MIN_STAKE_BASE_UNITS = 100_000n;
+/** 1.00 USDC — per-player ceiling, not a cap on the total pot. */
 export const MAX_STAKE_BASE_UNITS = 1_000_000n;
+/** The only accepted per-player stakes: 0.10, 0.25, 0.50 and 1.00 USDC. */
+export const STAKE_PRESETS_BASE_UNITS = [
+  100_000n,
+  250_000n,
+  500_000n,
+  1_000_000n,
+] as const;
+export type StakePresetBaseUnits = (typeof STAKE_PRESETS_BASE_UNITS)[number];
 /** 0.02 USDC, charged per player, once when a game finally resolves. */
 export const PLATFORM_FEE_PER_PLAYER_BASE_UNITS = 20_000n;
 
@@ -105,13 +93,16 @@ export function parseUsdcToBaseUnits(input: string): bigint {
 }
 
 export function validateStake(baseUnits: bigint): { ok: true } | { ok: false; reason: string } {
+  if (STAKE_PRESETS_BASE_UNITS.some((preset) => preset === baseUnits)) {
+    return { ok: true };
+  }
   if (baseUnits < MIN_STAKE_BASE_UNITS) {
-    return { ok: false, reason: "Stake must be at least 0.01 USDC" };
+    return { ok: false, reason: "Stake must be at least 0.10 USDC" };
   }
   if (baseUnits > MAX_STAKE_BASE_UNITS) {
     return { ok: false, reason: "Stake cannot exceed 1.00 USDC" };
   }
-  return { ok: true };
+  return { ok: false, reason: "Stake must be one of 0.10, 0.25, 0.50 or 1.00 USDC" };
 }
 
 /**
@@ -131,12 +122,9 @@ export interface PlayerResult {
   seat: number;
   /** Game-specific primary score, for display and as the default ranking. */
   score: number;
-  /**
-   * Full lexicographic ranking, higher is better. Defaults to [score].
-   * Horses uses [matches, -rolls, face]; Ship & Crew just [cargo].
-   */
+  /** Full lexicographic ranking, higher is better. Defaults to [score]. */
   ranking?: number[];
-  /** Extra display metadata (dice, hand summary...). Never trusted by the program. */
+  /** Extra display metadata (hand summary, trick log...). Never trusted by the program. */
   detail?: string;
 }
 

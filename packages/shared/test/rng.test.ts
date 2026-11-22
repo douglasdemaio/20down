@@ -75,15 +75,12 @@ describe("RandomStream", () => {
     expect(() => stream.int(0x1_0000_0001)).toThrow();
   });
 
-  it("produces fair dice", () => {
+  it("keeps small-range draws evenly distributed", () => {
     const stream = new RandomStream(seed);
     const counts = new Array(7).fill(0);
-    const rolls = 60_000;
-    for (let i = 0; i < rolls; i += 1) {
-      const die = stream.dice(1)[0] as number;
-      expect(die).toBeGreaterThanOrEqual(1);
-      expect(die).toBeLessThanOrEqual(6);
-      counts[die] += 1;
+    const draws = 60_000;
+    for (let i = 0; i < draws; i += 1) {
+      counts[stream.int(6) + 1] += 1;
     }
     // Expected 10k each; allow generous statistical slack.
     for (let face = 1; face <= 6; face += 1) {
@@ -103,11 +100,11 @@ describe("RandomStream", () => {
 });
 
 describe("domain separation", () => {
-  it("different domains produce different streams", () => {
-    const a = deriveStream(seed, "horses", 1, 0);
-    const b = deriveStream(seed, "horses", 1, 1);
-    const c = deriveStream(seed, "horses", 2, 0);
-    const d = deriveStream(seed, "ship-captain-crew", 1, 0);
+  it("different deals produce different streams", () => {
+    const a = deriveStream(seed, "zwanzig-ab", "deal", 1);
+    const b = deriveStream(seed, "zwanzig-ab", "deal", 2);
+    const c = deriveStream(seed, "zwanzig-ab", "trump", 1);
+    const d = deriveStream(seed, "other-game", "deal", 1);
     const values = [a.u32(), b.u32(), c.u32(), d.u32()];
     expect(new Set(values).size).toBe(4);
   });
@@ -117,12 +114,14 @@ describe("domain separation", () => {
     expect(deriveBytes(seed, "a", 1)).not.toEqual(deriveBytes(seed, "a", 2));
   });
 
-  it("a later turn's dice do not depend on earlier consumption", () => {
-    // Deriving seat 2 directly must equal deriving it after playing seat 1.
-    const direct = deriveStream(seed, "horses", 4, 2);
-    const warmup = deriveStream(seed, "horses", 4, 1);
-    warmup.dice(50);
-    const after = deriveStream(seed, "horses", 4, 2);
-    expect(direct.dice(10)).toEqual(after.dice(10));
+  it("a later deal's stream does not depend on earlier consumption", () => {
+    // Deriving deal 2 directly must equal deriving it after playing deal 1.
+    const direct = deriveStream(seed, "zwanzig-ab", "deal", 2);
+    const warmup = deriveStream(seed, "zwanzig-ab", "deal", 1);
+    for (let i = 0; i < 50; i += 1) warmup.u32();
+    const after = deriveStream(seed, "zwanzig-ab", "deal", 2);
+    expect(Array.from({ length: 10 }, () => direct.u32())).toEqual(
+      Array.from({ length: 10 }, () => after.u32()),
+    );
   });
 });
