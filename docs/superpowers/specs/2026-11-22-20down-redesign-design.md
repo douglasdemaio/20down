@@ -51,10 +51,11 @@ mainnet USDC as the target network.
      specific people.
    - "Find an open table" — asks the Lobby DO for a suitable waiting public
      table and joins it immediately; if none is available, creates one public
-     table matching the player's chosen mode and stake. The browsable list of
-     waiting tables remains available.
-5. Free tables are bot-filled; USDC wager tables are human-only. Shareable
-   table links work for both modes.
+     table matching the player's chosen mode (and stake, for wager tables). The
+     browsable list of waiting tables remains available.
+5. "Deal me in with bots" and quick-match free tables are bot-filled; "Open a
+   human table" starts with only the host and fills from the shared link. USDC
+   wager tables are human-only. Shareable table links work for both modes.
 6. Stake presets are exactly 0.10 / 0.25 / 0.50 / 1.00 USDC per player per
    round. The platform fee remains 0.02 USDC per player, charged once at final
    settlement. Ties carry the pot into a re-ante round; timeouts forfeit;
