@@ -1,0 +1,43 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "20down-backend",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-22",
+  "upload_source_maps": true,
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ALLOWED_ORIGINS": "https://douglasdemaio.github.io,http://localhost:5173,http://localhost:4173",
+    "GEO_BLOCKLIST": "",
+    "WAGERING_ENABLED": "false",
+    "CLUSTER": "mainnet-beta",
+    "USDC_MINT": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+    "PROGRAM_ID": "",
+    "RPC_URL": "",
+    "EXPLORER_CLUSTER_SUFFIX": ""
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LOBBY_DO",
+        "class_name": "LobbyDurableObject"
+      },
+      {
+        "name": "TABLE_DO",
+        "class_name": "TableDurableObject"
+      }
+    ]
+  },
+  "exports": {
+    "LobbyDurableObject": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    },
+    "TableDurableObject": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  }
+}

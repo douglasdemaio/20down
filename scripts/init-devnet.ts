@@ -1,5 +1,8 @@
 /**
- * Dice & Cards — devnet bootstrap.
+ * 20 Down — legacy devnet bootstrap.
+ *
+ * Historical helper for the retained devnet Anchor program only. The new
+ * mainnet product does not use this script.
  *
  * Prepares a funded wallet + token state for wager play:
  *   1. Loads (or generates) the oracle keypair.

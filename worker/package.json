@@ -1,0 +1,24 @@
+{
+  "name": "@20down/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker and Durable Objects backend for 20 Down",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "./node_modules/.bin/vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.9.0",
+    "@cloudflare/workers-types": "^5.20261121.1",
+    "typescript": "^5.6.3",
+    "vitest": "5.0.4",
+    "wrangler": "^4.125.0"
+  },
+  "dependencies": {
+    "@20down/shared": "*",
+    "@noble/hashes": "^1.5.0"
+  }
+}

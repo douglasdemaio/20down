@@ -3,8 +3,8 @@
 ## What shipped
 
 - New `client/` workspace: Vite 5, React 18, TypeScript, Tailwind, React Router.
-- Parchment-and-felt visual system ported from the legacy app, with the die
-  shadow token renamed to `shadow-raised`.
+- Parchment-and-felt visual system ported from the legacy app, consolidated on
+  the `shadow-raised` token.
 - Lobby actions:
   - Deal me in with bots (3 or 4 seats).
   - Open a human table with a copyable invite link.

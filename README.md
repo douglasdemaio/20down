@@ -21,11 +21,10 @@ live in:
 ```
 client/     Vite + React + TypeScript static frontend deployed to GitHub Pages
 packages/   Shared 20 Down engine, RNG, settlement rules and wire protocol
-worker/     Cloudflare Worker + Durable Objects backend (Phase 4)
+worker/     Cloudflare Worker + Durable Objects backend
 programs/   Anchor programs; wagerwake is the legacy devnet program only
-docs/       Design, implementation plan and phase findings
-app/        Legacy Next.js shell (kept until the static client cutover)
-server/     Legacy Node hub (kept until the Worker cutover)
+scripts/    Legacy devnet bootstrap utilities
+docs/       Design, implementation plan, rules and phase findings
 ```
 
 The deployed devnet program `CrjnJ5xQjSYUw4vkKKRfWtQFCc58EoA82ZXodNDwjHXt` is
@@ -79,13 +78,13 @@ client.
 ## Checks
 
 ```bash
-npm run typecheck   # shared package + static client
-npm test            # shared engine, RNG, settlement and parity tests
+npm run typecheck   # shared package, static client and Worker
+npm test            # shared engine, RNG, parity and Worker/DO integration tests
 npm run build       # type-check and build the static client
 ```
 
-Legacy shells still have their own scripts (`typecheck:legacy`,
-`build:legacy`, `test:legacy-server`) until Phases 4 and 7 remove them.
+Run the Worker locally with `npm run dev:worker` (port 8787). To point the
+static client at it, set `mock: false` in `client/public/config.js`.
 
 ## Player protection
 

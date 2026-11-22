@@ -6,7 +6,7 @@ the first player to reach zero or below wins.
 ## Deck and rank
 
 A 32-card French deck: A, 10, K, Q, J, 9, 8, 7 in each suit. The 10 outranks
-the King. Two to four players, five cards each.
+the King. Three or four players, five cards each.
 
 ## The deal
 
