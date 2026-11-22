@@ -1,4 +1,4 @@
-import type { GameId } from "@wagerwake/shared";
+import type { GameId } from "@20down/shared";
 
 export interface RuleSection {
   title: string;

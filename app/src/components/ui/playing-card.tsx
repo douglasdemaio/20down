@@ -1,7 +1,7 @@
 "use client";
 
-import type { Card, Suit } from "@wagerwake/shared";
-import { SUIT_SYMBOL } from "@wagerwake/shared";
+import type { Card, Suit } from "@20down/shared";
+import { SUIT_SYMBOL } from "@20down/shared";
 
 const SUIT_COLOR: Record<Suit, string> = {
   hearts: "text-red-700",

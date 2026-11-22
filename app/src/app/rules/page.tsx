@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Coins, Dices, Scale, Spade, Trophy } from "lucide-react";
-import { GAMES, GAME_IDS } from "@wagerwake/shared";
+import { GAMES, GAME_IDS } from "@20down/shared";
 import { RULE_DOCS } from "@/lib/rules";
 
 const GAME_ICONS = {

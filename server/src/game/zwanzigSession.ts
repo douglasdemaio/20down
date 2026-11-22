@@ -1,7 +1,7 @@
 import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex, concatBytes, utf8ToBytes } from "@noble/hashes/utils";
-import { ZwanzigGame, type Suit, type ZwanzigView } from "@wagerwake/shared";
-import { generateSeed, seedToHex } from "@wagerwake/shared";
+import { ZwanzigGame, type Suit, type ZwanzigView } from "@20down/shared";
+import { generateSeed, seedToHex } from "@20down/shared";
 
 export interface ZwanzigSessionEvents {
   onUpdate: () => void;
@@ -19,7 +19,7 @@ export interface ZwanzigSessionOptions {
 /**
  * Server-side wrapper around the shared Zwanzig ab engine. It owns the clock,
  * auto-actions for timeouts and the multi-deal game loop; the rules themselves
- * live in `@wagerwake/shared` and are unit-tested there.
+ * live in `@20down/shared` and are unit-tested there.
  */
 export class ZwanzigSession {
   readonly game: ZwanzigGame;

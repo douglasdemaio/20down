@@ -4,7 +4,7 @@ import {
   playShipCrewTurn,
   type HorsesTurn,
   type ShipCrewTurn,
-} from "@wagerwake/shared";
+} from "@20down/shared";
 import {
   DiceSession,
   type DiceRoundOutcome,

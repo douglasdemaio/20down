@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Crown, Eye, Scale, Trophy } from "lucide-react";
-import { formatUsdc } from "@wagerwake/shared";
-import type { RoomView } from "@wagerwake/shared/protocol";
+import { formatUsdc } from "@20down/shared";
+import type { RoomView } from "@20down/shared/protocol";
 import { explorerTxUrl } from "@/lib/config";
 
 export function RoundSummary({ room }: { room: RoomView }) {

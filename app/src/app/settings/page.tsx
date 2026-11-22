@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Settings as SettingsIcon, Trash2, User } from "lucide-react";
-import { GAMES } from "@wagerwake/shared";
+import { GAMES } from "@20down/shared";
 import { useState } from "react";
 import { useGameSocket } from "@/components/game-socket-provider";
 import { useMode } from "@/components/mode-provider";

@@ -1,8 +1,8 @@
 {
-  "name": "wagerwake",
+  "name": "20down",
   "version": "0.1.0",
   "private": true,
-  "description": "Dice & Cards — free and USDC-wagered multiplayer dice/card games on Solana",
+  "description": "20 Down — a three- or four-player trick-taking game with free play and USDC wagering on Solana",
   "workspaces": [
     "app",
     "server",
@@ -10,13 +10,13 @@
   ],
   "scripts": {
     "dev": "concurrently -n server,app -c magenta,cyan \"npm:dev:server\" \"npm:dev:app\"",
-    "dev:server": "npm run dev -w @wagerwake/server",
-    "dev:app": "npm run dev -w @wagerwake/app",
-    "build": "npm run build -w @wagerwake/app && npm run build -w @wagerwake/server",
-    "typecheck": "npm run typecheck -w @wagerwake/shared && npm run typecheck -w @wagerwake/server && npm run typecheck -w @wagerwake/app",
-    "test": "npm run test -w @wagerwake/shared && npm run test -w @wagerwake/server",
-    "test:shared": "npm run test -w @wagerwake/shared",
-    "test:server": "npm run test -w @wagerwake/server",
+    "dev:server": "npm run dev -w @20down/server",
+    "dev:app": "npm run dev -w @20down/app",
+    "build": "npm run build -w @20down/app && npm run build -w @20down/server",
+    "typecheck": "npm run typecheck -w @20down/shared && npm run typecheck -w @20down/server && npm run typecheck -w @20down/app",
+    "test": "npm run test -w @20down/shared && npm run test -w @20down/server",
+    "test:shared": "npm run test -w @20down/shared",
+    "test:server": "npm run test -w @20down/server",
     "chain:build": "anchor build",
     "chain:test": "anchor test",
     "chain:test:local": "anchor test --skip-build"

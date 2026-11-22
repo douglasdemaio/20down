@@ -25,7 +25,7 @@ import {
   formatUsdc,
   type GameId,
   type PlayMode,
-} from "@wagerwake/shared";
+} from "@20down/shared";
 import { useGameSocket } from "@/components/game-socket-provider";
 import { useMode } from "@/components/mode-provider";
 import { useCompliance } from "@/components/compliance-provider";

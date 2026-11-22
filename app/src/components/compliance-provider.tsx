@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { formatUsdc } from "@wagerwake/shared";
+import { formatUsdc } from "@20down/shared";
 import {
   DEFAULT_COMPLIANCE,
   LOSS_LIMITS,

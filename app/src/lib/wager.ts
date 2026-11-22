@@ -1,7 +1,7 @@
 import { Transaction } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { SERVER_URL } from "./config";
-import type { TxResponse } from "@wagerwake/shared/protocol";
+import type { TxResponse } from "@20down/shared/protocol";
 
 export type WagerTxKind = "join" | "ante" | "leave";
 

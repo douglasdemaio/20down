@@ -9,8 +9,8 @@ import {
   generateSeed,
   type GameId,
   type PlayMode,
-} from "@wagerwake/shared";
-import { explorerAddressUrl, escrowPda } from "@wagerwake/shared/chain";
+} from "@20down/shared";
+import { explorerAddressUrl, escrowPda } from "@20down/shared/chain";
 import type {
   ChainStatus,
   LobbyTable,
@@ -19,7 +19,7 @@ import type {
   RoomView,
   RoundSummary,
   SeatPublic,
-} from "@wagerwake/shared/protocol";
+} from "@20down/shared/protocol";
 import type { WagerChain } from "./chain.js";
 import {
   DiceSession,

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ZwanzigGame } from "@wagerwake/shared";
+import { ZwanzigGame } from "@20down/shared";
 import { ZwanzigSession } from "../src/game/zwanzigSession.js";
-import type { ZwanzigView } from "@wagerwake/shared";
+import type { ZwanzigView } from "@20down/shared";
 
 afterEach(() => {
   vi.useRealTimers();

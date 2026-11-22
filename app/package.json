@@ -1,5 +1,5 @@
 {
-  "name": "@wagerwake/app",
+  "name": "@20down/app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -17,7 +17,7 @@
     "@solana/wallet-adapter-react-ui": "^0.9.35",
     "@solana/wallet-adapter-solflare": "^0.6.34",
     "@solana/web3.js": "^1.95.8",
-    "@wagerwake/shared": "*",
+    "@20down/shared": "*",
     "lucide-react": "^0.468.0",
     "next": "14.2.20",
     "react": "^18.3.1",

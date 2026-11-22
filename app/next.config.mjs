@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@wagerwake/shared"],
+  transpilePackages: ["@20down/shared"],
   webpack: (config) => {
     // The shared package uses explicit `.js` specifiers that resolve to `.ts`
     // source in this monorepo.

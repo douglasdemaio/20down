@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Dices, Lock, RotateCcw, Hand, CheckCircle2, HelpCircle } from "lucide-react";
-import type { RoomView } from "@wagerwake/shared/protocol";
-import { evaluateHorses, describeHorsesHand } from "@wagerwake/shared";
+import type { RoomView } from "@20down/shared/protocol";
+import { evaluateHorses, describeHorsesHand } from "@20down/shared";
 import { useGameSocket } from "@/components/game-socket-provider";
 import { Die } from "@/components/ui/die";
 import { Countdown } from "./countdown";

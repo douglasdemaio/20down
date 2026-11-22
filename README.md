@@ -1,13 +1,20 @@
-# Dice & Cards
+# 20 Down
 
-Free and USDC-wagered multiplayer dice/card games on Solana.
+A three- or four-player trick-taking game with free play against bots and
+USDC wagering on Solana mainnet.
 
-- **Ship, Captain & Crew** and **Horses** — five dice, fully replayed on-chain
-  from a committed seed and reroll masks.
-- **Zwanzig ab (20 Down)** — a German trick-taker; card order comes from the
-  same seed, settlement attaches an oracle-attested log hash in v1.
-- Each game has a **Free mode** (no wallet, bots fill empty seats) and a
-  **Wager mode** (USDC escrowed by the Anchor program, paid out on-chain).
+This repository is being rebuilt as a static GitHub Pages client backed by
+Cloudflare Workers and Durable Objects. The approved design and staged
+implementation plan live in:
+
+- `docs/superpowers/specs/2026-11-22-20down-redesign-design.md`
+- `docs/superpowers/plans/2026-11-22-20down-redesign.md`
+- `docs/20down-phase0-spikes.md`
+
+> **Status:** the sections below still describe the legacy Next.js/Node hub
+> build and the already-deployed devnet program. They are retained for reference
+> until the rebuild's documentation rewrite (plan Phase 7). The legacy devnet
+> program is not being modified or redeployed.
 
 ```
 app/        Next.js + TypeScript + Tailwind frontend (Phantom/Solflare wallet)

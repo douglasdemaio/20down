@@ -6,8 +6,8 @@ import {
   MIN_STAKE_BASE_UNITS,
   PLATFORM_TREASURY,
   TURN_TIMEOUT_MS,
-} from "@wagerwake/shared";
-import { usdcMintForCluster } from "@wagerwake/shared/chain";
+} from "@20down/shared";
+import { usdcMintForCluster } from "@20down/shared/chain";
 import { Room, checkedStake, createRoomId, formatStake } from "../src/room.js";
 import type { ServerConfig } from "../src/config.js";
 

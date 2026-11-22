@@ -1,5 +1,5 @@
 {
-  "name": "@wagerwake/server",
+  "name": "@20down/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "@anchor-lang/core": "^1.2.2",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
-    "@wagerwake/shared": "*",
+    "@20down/shared": "*",
     "ws": "^8.18.0"
   },
   "devDependencies": {

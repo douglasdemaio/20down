@@ -28,9 +28,9 @@ import {
   playerAta,
   tablePda,
   type OnChainTable,
-} from "@wagerwake/shared/chain";
-import { WAGERWAKE_IDL } from "@wagerwake/shared/idl";
-import type { GameId } from "@wagerwake/shared";
+} from "@20down/shared/chain";
+import { WAGERWAKE_IDL } from "@20down/shared/idl";
+import type { GameId } from "@20down/shared";
 import type {ServerConfig} from "./config.js";
 import type {DiceTurnRecord} from "./game/diceSession.js";
 

@@ -14,8 +14,8 @@ import {
   type HorsesHand,
   type HorsesTurn,
   type ShipCrewTurn,
-} from "@wagerwake/shared";
-import type { DicePublicState, RoundResultRow, RoundSummary } from "@wagerwake/shared/protocol";
+} from "@20down/shared";
+import type { DicePublicState, RoundResultRow, RoundSummary } from "@20down/shared/protocol";
 
 export type DiceGameId = "ship-captain-crew" | "horses";
 

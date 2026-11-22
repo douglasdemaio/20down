@@ -18,8 +18,8 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { formatUsdc } from "@wagerwake/shared";
-import type { RoomView } from "@wagerwake/shared/protocol";
+import { formatUsdc } from "@20down/shared";
+import type { RoomView } from "@20down/shared/protocol";
 import { useGameSocket } from "@/components/game-socket-provider";
 import { useCompliance } from "@/components/compliance-provider";
 import { explorerAddressUrl, explorerTxUrl } from "@/lib/config";

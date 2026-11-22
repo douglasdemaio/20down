@@ -11,13 +11,13 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
-import type { GameId, PlayMode, Suit } from "@wagerwake/shared";
+import type { GameId, PlayMode, Suit } from "@20down/shared";
 import type {
   ClientMessage,
   LobbyTable,
   RoomView,
   ServerMessage,
-} from "@wagerwake/shared/protocol";
+} from "@20down/shared/protocol";
 import { WS_URL } from "@/lib/config";
 import { loadName, saveName } from "@/lib/compliance";
 

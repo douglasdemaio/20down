@@ -8,7 +8,7 @@ Quick start:
 
 - Open `/verify` in the app and enter a table code (and round).
 - Or query the hub directly: `GET /api/verify?room=<room>&round=<n>` and
-  re-derive the dice yourself with `@wagerwake/shared`.
+  re-derive the dice yourself with `@20down/shared`.
 - The seed commitment is published before play; the revealed seed is published
   with the settlement. Both are recorded on wager tables (`commit_seed`,
   `record_vrf`).

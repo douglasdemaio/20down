@@ -16,8 +16,8 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { formatUsdc } from "@wagerwake/shared";
-import type { RoomView } from "@wagerwake/shared/protocol";
+import { formatUsdc } from "@20down/shared";
+import type { RoomView } from "@20down/shared/protocol";
 import { useGameSocket } from "@/components/game-socket-provider";
 import { DiceBoard } from "./dice-board";
 import { ZwanzigBoard } from "./zwanzig-board";

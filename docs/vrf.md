@@ -21,7 +21,7 @@ When a round resolves, the seed is revealed and recorded on-chain
 (`record_vrf`) together with `vrf_digest = sha256(seed || 0x00)`. Anyone can:
 
 1. hash the revealed seed and compare it to the on-chain commitment;
-2. re-run the shared TypeScript (`@wagerwake/shared`) or the Rust engine;
+2. re-run the shared TypeScript (`@20down/shared`) or the Rust engine;
 3. compare the replayed scores to the published round record;
 
 never trusting the server for the result. The **Verify** page does exactly

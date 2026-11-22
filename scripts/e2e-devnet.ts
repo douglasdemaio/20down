@@ -42,7 +42,7 @@ import {
 import WebSocket from "ws";
 import { createHubServer } from "../server/src/index";
 import { loadConfig } from "../server/src/config";
-import { formatUsdc } from "@wagerwake/shared";
+import { formatUsdc } from "@20down/shared";
 
 const STAKE = 10_000n; // 0.01 USDC stake per player
 const FEE = 20_000n; // 0.02 USDC platform fee (charged once)

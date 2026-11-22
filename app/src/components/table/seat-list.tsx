@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, Check, CircleDashed, Crown, Dot, Wallet } from "lucide-react";
-import type { RoomView } from "@wagerwake/shared/protocol";
+import type { RoomView } from "@20down/shared/protocol";
 
 export function SeatList({ room }: { room: RoomView }) {
   return (

@@ -34,7 +34,7 @@ import {
   getAssociatedTokenAddressSync,
   mintTo,
 } from "@solana/spl-token";
-import { PLATFORM_TREASURY, USDC_MINT_DEVNET, USDC_MINT_MAINNET } from "@wagerwake/shared";
+import { PLATFORM_TREASURY, USDC_MINT_DEVNET, USDC_MINT_MAINNET } from "@20down/shared";
 
 const CLUSTER = process.env.SOLANA_CLUSTER ?? "devnet";
 const RPC_URL =

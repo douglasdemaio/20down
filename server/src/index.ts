@@ -9,7 +9,7 @@ import {
   isGameId,
   type GameId,
   type PlayMode,
-} from "@wagerwake/shared";
+} from "@20down/shared";
 import {
   HEALTH_PATH,
   LOBBY_PATH,
@@ -21,7 +21,7 @@ import {
   type LobbyTable,
   type ServerMessage,
   type TxRequest,
-} from "@wagerwake/shared/protocol";
+} from "@20down/shared/protocol";
 import type { ServerConfig } from "./config.js";
 import { WagerChain } from "./chain.js";
 import {
@@ -772,15 +772,15 @@ async function main(): Promise<void> {
   const server = createHubServer(config);
   server.http.listen(config.port, config.host, () => {
     console.log(
-      `[wagerwake] listening on http://${config.host}:${config.port} (ws ${WS_PATH})`,
+      `[20down] listening on http://${config.host}:${config.port} (ws ${WS_PATH})`,
     );
     console.log(
-      `[wagerwake] cluster=${config.cluster} program=${config.programId.toBase58()} chain=${config.chainEnabled ? "on" : "off"}`,
+      `[20down] cluster=${config.cluster} program=${config.programId.toBase58()} chain=${config.chainEnabled ? "on" : "off"}`,
     );
   });
 
   const shutdown = () => {
-    console.log("[wagerwake] shutting down");
+    console.log("[20down] shutting down");
     void server.close().then(() => process.exit(0));
   };
   process.on("SIGINT", shutdown);
@@ -792,7 +792,7 @@ const isMain =
   (process.argv[1].endsWith("/index.ts") || process.argv[1].endsWith("/index.js"));
 if (isMain) {
   void main().catch((error) => {
-    console.error("[wagerwake] fatal:", error);
+    console.error("[20down] fatal:", error);
     process.exit(1);
   });
 }

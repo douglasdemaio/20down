@@ -16,7 +16,7 @@ import {
   commitSeed,
   type ShipCrewTurn,
   type HorsesTurn,
-} from "@wagerwake/shared";
+} from "@20down/shared";
 import { SERVER_URL, explorerTxUrl } from "@/lib/config";
 
 interface TurnRecord {

@@ -5,11 +5,11 @@ import {
   ANTE_TIMEOUT_MS,
   PLATFORM_TREASURY,
   TURN_TIMEOUT_MS,
-} from "@wagerwake/shared";
-import { usdcMintForCluster } from "@wagerwake/shared/chain";
+} from "@20down/shared";
+import { usdcMintForCluster } from "@20down/shared/chain";
 import type { ServerConfig } from "../src/config.js";
 import { createHubServer, type RunningServer } from "../src/index.js";
-import type { ServerMessage } from "@wagerwake/shared/protocol";
+import type { ServerMessage } from "@20down/shared/protocol";
 
 function testConfig(): ServerConfig {
   return {

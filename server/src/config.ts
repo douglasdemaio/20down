@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { isIP } from "node:net";
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { WAGERWAKE_PROGRAM_ID, usdcMintForCluster } from "@wagerwake/shared/chain";
-import { PLATFORM_TREASURY } from "@wagerwake/shared";
+import { WAGERWAKE_PROGRAM_ID, usdcMintForCluster } from "@20down/shared/chain";
+import { PLATFORM_TREASURY } from "@20down/shared";
 
 export interface ServerConfig {
   host: string;

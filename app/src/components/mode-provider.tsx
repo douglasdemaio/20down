@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { PlayMode } from "@wagerwake/shared";
+import type { PlayMode } from "@20down/shared";
 
 interface ModeContextValue {
   mode: PlayMode;
