@@ -8,11 +8,14 @@ import {
   LogOut,
   MessageCircle,
   Play,
+  QrCode,
   RotateCcw,
   Share2,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
+import QRCode from "react-qr-code";
 import { formatUsdc } from "@20down/shared";
 import type { RoomView } from "@20down/shared/protocol";
 import { useGameSocket } from "@/components/game-socket-provider";
@@ -29,6 +32,7 @@ export function TableClient({ tableId }: { tableId: string }) {
   const joinAttempted = useRef(false);
   const [timedOut, setTimedOut] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     if (status !== "online") {
@@ -50,15 +54,16 @@ export function TableClient({ tableId }: { tableId: string }) {
     return () => clearTimeout(timer);
   }, [room]);
 
+  const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}table/${room?.id ?? tableId}`;
+
   const share = async () => {
     try {
-      await navigator.clipboard.writeText(
-        `${window.location.origin}${import.meta.env.BASE_URL}table/${room?.id ?? tableId}`,
-      );
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      setShowShare(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      // ignore
+      setShowShare(true);
     }
   };
 
@@ -154,6 +159,17 @@ export function TableClient({ tableId }: { tableId: string }) {
             {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
             {copied ? "Copied" : "Share"}
           </button>
+          {showShare ? (
+            <button
+              type="button"
+              className="btn-quiet !px-2 !py-2 text-xs"
+              onClick={() => setShowShare(false)}
+              aria-label="Hide share QR code"
+              title="Hide QR code"
+            >
+              <QrCode className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
           <button
             type="button"
             className="btn-quiet !py-2 text-xs"
@@ -174,6 +190,32 @@ export function TableClient({ tableId }: { tableId: string }) {
         <div className="mt-4 flex items-start gap-2 rounded-xl border border-brass-400/25 bg-brass-500/[0.07] px-4 py-2.5 text-xs leading-relaxed text-brass-300">
           <Crown className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {room.notice}
+        </div>
+      ) : null}
+
+      {showShare ? (
+        <div className="mt-4 panel flex flex-wrap items-center gap-4 p-4 sm:p-5">
+          <div className="rounded-xl bg-white p-2">
+            <QRCode value={shareUrl} size={132} bgColor="#ffffff" fgColor="#0a0c10" />
+          </div>
+          <div className="min-w-[14rem] flex-1">
+            <p className="label flex items-center gap-1.5">
+              <QrCode className="h-3 w-3" /> Invite link
+            </p>
+            <p className="mt-1 text-sm text-parchment-100">Scan to join this table</p>
+            <p className="mt-2 break-all rounded-lg border border-white/10 bg-ink-950/50 px-3 py-2 font-mono text-[11px] text-parchment-200/70">
+              {shareUrl}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="btn-ghost !py-2 text-xs" onClick={share}>
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                {copied ? "Link copied" : "Copy link"}
+              </button>
+              <button type="button" className="btn-quiet !py-2 text-xs" onClick={() => setShowShare(false)}>
+                <X className="h-3.5 w-3.5" /> Hide
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
