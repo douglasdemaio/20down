@@ -9,7 +9,7 @@
     "enabled": true
   },
   "vars": {
-    "ALLOWED_ORIGINS": "https://douglasdemaio.github.io,http://localhost:5173,http://localhost:4173",
+    "ALLOWED_ORIGINS": "https://20-down.com,https://www.20-down.com,https://douglasdemaio.github.io,http://localhost:5173,http://localhost:4173",
     "GEO_BLOCKLIST": "",
     "WAGERING_ENABLED": "false",
     "CLUSTER": "mainnet-beta",
