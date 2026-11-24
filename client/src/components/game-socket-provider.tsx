@@ -281,6 +281,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       pendingRef.current = onCreated ?? null;
       if (!send({ type: "create", ...options, name: nameRef.current, wallet: walletRef.current ?? undefined })) {
         pendingRef.current = null;
+        setError("Connecting to the game server. Please try again in a moment.");
       }
     },
     [send],
@@ -291,7 +292,9 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       if (roomRef.current?.id === tableId) return;
       setError(null);
       setChat([]);
-      send({ type: "join", tableId, name: nameRef.current, wallet: walletRef.current ?? undefined });
+      if (!send({ type: "join", tableId, name: nameRef.current, wallet: walletRef.current ?? undefined })) {
+        setError("Connecting to the game server. Please try again in a moment.");
+      }
     },
     [send],
   );
@@ -303,6 +306,7 @@ export function GameSocketProvider({ children }: { children: React.ReactNode }) 
       pendingRef.current = onMatched ?? null;
       if (!send({ type: "quickMatch", ...options, name: nameRef.current, wallet: walletRef.current ?? undefined })) {
         pendingRef.current = null;
+        setError("Connecting to the game server. Please try again in a moment.");
       }
     },
     [send],

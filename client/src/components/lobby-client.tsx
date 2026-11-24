@@ -300,7 +300,7 @@ export function LobbyClient() {
               <button
                 type="button"
                 className="btn-primary w-full"
-                disabled={status !== "online" || escrowLocked}
+                disabled={escrowLocked}
                 onClick={() => {
                   pendingRef.current = true;
                   createTable({ game: "zwanzig-ab", mode: "free", vsBots: true, maxPlayers: botSeats });
@@ -344,7 +344,7 @@ export function LobbyClient() {
               <button
                 type="button"
                 className="btn-ghost w-full"
-                disabled={status !== "online" || escrowLocked}
+                disabled={escrowLocked}
                 onClick={() => {
                   pendingRef.current = true;
                   createTable({ game: "zwanzig-ab", mode: "free", vsBots: false, maxPlayers: botSeats });
@@ -378,11 +378,7 @@ export function LobbyClient() {
               <button
                 type="button"
                 className="btn-ghost w-full"
-                disabled={
-                  status !== "online" ||
-                  escrowLocked ||
-                  (mode === "wager" && wagerBlocked)
-                }
+                disabled={escrowLocked || (mode === "wager" && wagerBlocked)}
                 onClick={() => {
                   pendingRef.current = true;
                   quickMatch({
@@ -440,7 +436,7 @@ export function LobbyClient() {
             <button
               type="button"
               className="btn-coral"
-              disabled={status !== "online" || escrowLocked || wagerBlocked}
+              disabled={escrowLocked || wagerBlocked}
               onClick={() => {
                 pendingRef.current = true;
                 createTable({
