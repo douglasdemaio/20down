@@ -7,12 +7,12 @@
  */
 window.__20DOWN_CONFIG__ = {
   // Base URL of the Worker. Set to "" to use same-origin API routes.
-  apiBaseUrl: "http://localhost:8787",
+  apiBaseUrl: "https://20down-backend.douglasdemaio.workers.dev",
   // Explicit WebSocket URL. Leave empty to derive it from apiBaseUrl.
   wsUrl: "",
   // Local, in-browser simulation of the Worker. Flip to false once the Worker
   // is deployed and the URLs above point at it.
-  mock: true,
+  mock: false,
   // Solana mainnet is the only wagering cluster in this build.
   cluster: "mainnet-beta",
   rpcUrl: "",
