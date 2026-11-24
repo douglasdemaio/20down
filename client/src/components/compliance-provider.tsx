@@ -135,9 +135,10 @@ function ComplianceGate() {
   const wager = mode === "wager";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-y-auto bg-ink-950/80 p-4 backdrop-blur-sm sm:items-center">
-      <div className="panel w-full max-w-xl overflow-hidden">
-        <div className="border-b border-white/10 bg-gradient-to-r from-brass-500/15 via-transparent to-felt-500/15 px-6 py-5">
+    <div className="fixed inset-0 z-[80] overflow-y-auto bg-ink-950/80 backdrop-blur-sm">
+      <div className="flex min-h-full items-end justify-center p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:items-center">
+        <div className="panel my-4 w-full max-w-xl overflow-hidden">
+          <div className="border-b border-white/10 bg-gradient-to-r from-brass-500/15 via-transparent to-felt-500/15 px-6 py-5">
           <p className="label">House check</p>
           <h2 className="mt-1 font-display text-3xl text-parchment-100">Before you sit down</h2>
           <p className="mt-2 text-sm leading-relaxed text-parchment-200/70">
@@ -213,6 +214,7 @@ function ComplianceGate() {
             Enter 20 Down
           </button>
         </div>
+        </div>
       </div>
     </div>
   );
@@ -247,8 +249,9 @@ function Check({
 
 function GeoBlocked({ country }: { country: string | null }) {
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-ink-950/95 p-6">
-      <div className="panel max-w-lg p-8 text-center">
+    <div className="fixed inset-0 z-[90] overflow-y-auto bg-ink-950/95">
+      <div className="flex min-h-full items-center justify-center p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        <div className="panel my-4 max-w-lg p-8 text-center">
         <p className="label">Jurisdiction notice</p>
         <h2 className="mt-2 font-display text-3xl">Not available in your region</h2>
         <p className="mt-3 text-sm leading-relaxed text-parchment-200/70">
@@ -263,6 +266,7 @@ function GeoBlocked({ country }: { country: string | null }) {
         >
           Responsible gambling resources
         </a>
+        </div>
       </div>
     </div>
   );
