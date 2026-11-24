@@ -7,7 +7,7 @@ const distDir = fileURLToPath(new URL("./dist", import.meta.url));
 
 /**
  * GitHub Pages serves `404.html` for unknown paths. Shipping a copy of the
- * built SPA shell there makes deep links like `/20down/table/T-123` load the
+ * built SPA shell there makes deep links like `/table/T-123` load the
  * client, which then reads the table id from the URL.
  */
 function githubPagesFallback(): Plugin {
@@ -20,9 +20,9 @@ function githubPagesFallback(): Plugin {
   };
 }
 
-// GitHub Pages serves this project from https://<user>.github.io/20down/.
+// Custom domain serves from the site root (https://20-down.com/).
 export default defineConfig({
-  base: "/20down/",
+  base: "/",
   plugins: [react(), githubPagesFallback()],
   resolve: {
     alias: {

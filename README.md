@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-The dev server runs the static client on <http://localhost:5173/20down/>. By
+The dev server runs the static client on <http://localhost:5173/>. By
 default `client/public/config.js` uses the in-browser mock Worker, so the
 lobby, quick match, table deep links and a full bot game work without a backend
 or wallet.
@@ -72,8 +72,8 @@ so the same build can be promoted without rebuilding:
 | `wageringEnabled` | Master switch; stays `false` until audit and legal sign-off |
 
 The GitHub Pages workflow builds `client/` and deploys `client/dist`, including
-a `404.html` copy of the SPA shell so `/20down/table/<id>` deep links load the
-client.
+a `404.html` copy of the SPA shell and a `CNAME` file so `/table/<id>` deep
+links and the custom domain work on GitHub Pages.
 
 ## Checks
 
